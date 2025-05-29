@@ -1,0 +1,750 @@
+/* Variáveis Globais de Tema */
+:root {
+    --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    transition: background-color 0.3s ease, color 0.3s ease;
+
+    /* Tema Claro (Azul como primário) */
+    --primary-color-light: #3498db;
+    --secondary-color-light: #2980b9;
+    --background-color-light: #ecf0f1;
+    --text-color-light: #2c3e50;
+    --text-secondary-color-light: #555555; /* Adicionado para consistência */
+    --card-background-light: #ffffff;
+    --border-color-light: #bdc3c7;
+    --input-bg-light: #ffffff;
+    --input-border-light: #ced4da; /* Adicionado para consistência */
+    --star-empty-light: #ccc;
+    --star-filled-light: #f39c12;
+    --success-color-light: #28a745; /* Adicionado */
+    --danger-color-light: #dc3545;  /* Adicionado */
+    --warning-color-light: #ffc107; /* Adicionado */
+    --shadow-light: 0 4px 12px rgba(0, 123, 255, 0.1); /* Adicionado */
+
+
+    /* Tema Escuro */
+    --primary-color-dark: #3ca9e2;
+    --secondary-color-dark: #3498db;
+    --background-color-dark: #2c3e50;
+    --text-color-dark: #ecf0f1;
+    --text-secondary-color-dark: #b0b3b8; /* Adicionado para consistência */
+    --card-background-dark: #34495e;
+    --border-color-dark: #7f8c8d;
+    --input-bg-dark: #3b5266;
+    --input-border-dark: #404858; /* Adicionado para consistência */
+    --star-empty-dark: #555e6f; /* Ajustado o nome da var para consistência */
+    --star-filled-dark: #f1c40f;
+    --success-color-dark: #32cd32; /* Adicionado */
+    --danger-color-dark: #ff6b6b;   /* Adicionado */
+    --warning-color-dark: #ffd700;  /* Adicionado */
+    --shadow-dark: 0 4px 12px rgba(0, 132, 255, 0.15); /* Adicionado */
+}
+
+/* Estilos Base e Tema Claro como Padrão */
+body {
+    font-family: var(--font-family);
+    margin: 0;
+    padding: 20px;
+    background-color: var(--background-color-light);
+    color: var(--text-color-light);
+    transition: background-color 0.3s, color 0.3s;
+    line-height: var(--line-height);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: var(--card-background-light);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: var(--shadow-light);
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border-color-light);
+    padding-bottom: 15px;
+}
+
+header h1 {
+    color: var(--primary-color-light);
+    margin: 0;
+    font-size: 1.8em; /* Movido do JS para cá */
+}
+header h1 i { margin-right: 10px; } /* Movido do JS para cá */
+
+
+.controls button, .button-like-label {
+    margin-left: 10px;
+    padding: 8px 12px; /* Ajustado o padding */
+    border-radius: 6px; /* Ajustado o border-radius */
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+    display: inline-flex; /* Para alinhar ícone e texto */
+    align-items: center; /* Para alinhar ícone e texto */
+    gap: 6px; /* Espaço entre ícone e texto */
+    border: 1px solid var(--primary-color-light); /* Borda para tema claro */
+    background-color: transparent; /* Fundo transparente por padrão */
+    color: var(--primary-color-light); /* Cor do texto igual à da borda */
+}
+
+.controls button:hover, .button-like-label:hover {
+    background-color: var(--primary-color-light);
+    color: var(--card-background-light); /* Texto branco ou cor do card para contraste */
+}
+
+
+#item-form {
+    margin-bottom: 30px;
+    padding: 20px;
+    border: 1px solid var(--border-color-light);
+    border-radius: 8px; /* Ajustado o border-radius */
+    background-color: var(--background-color-light);
+}
+
+#item-form h2 {
+    margin-top: 0;
+    margin-bottom: 20px; /* Adicionado margin-bottom */
+    color: var(--primary-color-light);
+    font-size: 1.5em; /* Movido do JS para cá */
+}
+#item-form h2 i { margin-right: 8px; } /* Movido do JS para cá */
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Ajustado minmax */
+    gap: 20px; /* Ajustado o gap */
+    margin-bottom: 20px; /* Ajustado o margin-bottom */
+}
+.form-group { /* Adicionada classe para agrupar label e input */
+    /* Usada no HTML */
+}
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+#item-form label {
+    display: block;
+    margin-bottom: 6px; /* Ajustado margin-bottom */
+    font-weight: 500; /* Ajustado font-weight */
+    color: var(--text-secondary-color-light);
+}
+
+#item-form input[type="text"],
+#item-form textarea {
+    width: 100%;
+    padding: 10px 12px; /* Ajustado padding */
+    border: 1px solid var(--input-border-light);
+    border-radius: 6px; /* Ajustado border-radius */
+    box-sizing: border-box;
+    background-color: var(--input-bg-light);
+    color: var(--text-color-light);
+    font-size: 0.95em; /* Adicionado font-size */
+    transition: border-color 0.2s ease, box-shadow 0.2s ease; /* Adicionada transição */
+}
+#item-form input[type="text"]:focus, /* Adicionado estado de foco */
+#item-form textarea:focus {
+    outline: none;
+    border-color: var(--primary-color-light);
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+
+#item-form textarea {
+    min-height: 100px; /* Ajustado min-height */
+    resize: vertical;
+}
+
+#item-form button[type="submit"].btn-add { /* Especificidade para o botão de adicionar */
+    padding: 10px 20px;
+    background-color: var(--primary-color-light);
+    color: #fff; /* Texto branco */
+    border: none;
+    border-radius: 6px; /* Ajustado border-radius */
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 500; /* Adicionado font-weight */
+    transition: background-color 0.2s;
+    display: inline-flex; /* Para alinhar ícone e texto */
+    align-items: center; /* Para alinhar ícone e texto */
+    gap: 8px; /* Espaço entre ícone e texto */
+}
+#item-form button[type="submit"].btn-add:hover {
+    background-color: var(--secondary-color-light);
+}
+
+
+.list-container h2 {
+    color: var(--primary-color-light);
+    font-size: 1.5em; /* Movido do JS para cá */
+    margin-bottom: 20px; /* Adicionado margin-bottom */
+}
+.list-container h2 i { margin-right: 8px; } /* Movido do JS para cá */
+
+.table-wrapper { /* Adicionado para responsividade da tabela */
+    overflow-x: auto;
+}
+#items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-size: 0.9em; /* Adicionado font-size */
+}
+
+#items-table th, #items-table td {
+    border: 1px solid var(--border-color-light);
+    padding: 12px 15px; /* Ajustado padding */
+    text-align: left;
+    vertical-align: middle; /* Ajustado para middle */
+}
+
+#items-table thead th { /* Estilos para cabeçalho da tabela */
+    background-color: #e9ecef; /* Cinza claro para tema claro */
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.85em;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary-color-light);
+}
+
+#items-table tbody tr:nth-child(even) {
+    background-color: #f8f9fa; /* Zebrado para tema claro */
+}
+
+
+#items-table td button {
+    margin-right: 5px;
+    padding: 6px 10px; /* Ajustado padding */
+    border: none;
+    border-radius: 4px; /* Ajustado border-radius */
+    cursor: pointer;
+    font-size: 0.9em; /* Ajustado font-size */
+    color: #fff; /* Texto branco para botões coloridos */
+    transition: opacity 0.2s ease; /* Adicionada transição */
+    display: inline-flex; /* Para alinhar ícone e texto */
+    align-items: center; /* Para alinhar ícone e texto */
+    gap: 5px; /* Espaço entre ícone e texto */
+}
+#items-table td button:hover {
+    opacity: 0.85;
+}
+
+.edit-btn { background-color: var(--warning-color-light); } /* Usando variável */
+.delete-btn { background-color: var(--danger-color-light); } /* Usando variável */
+.save-btn { background-color: var(--success-color-light); } /* Usando variável */
+.cancel-btn { background-color: #6c757d; color: white; } /* Cinza padrão */
+
+
+/* Estilização para Estrelas */
+.star-rating-input, .star-rating-display {
+    display: flex;
+    align-items: center;
+    gap: 1px; /* Espaço entre estrelas */
+}
+
+.star-rating-input .star, .star-rating-display .star {
+    font-size: 1.8em; 
+    cursor: pointer;
+    color: var(--star-empty-light);
+    user-select: none;
+    transition: color 0.1s ease; /* Adicionado para suavizar hover */
+}
+.star-rating-input .star.filled, .star-rating-display .star.filled {
+    color: var(--star-filled-light);
+}
+#items-table td .star-rating-display .star { /* Estrelas na tabela não são clicáveis */
+    font-size: 1.2em;
+    cursor: default;
+}
+#items-table td .star-rating-input.inline-edit-stars .star {
+    font-size: 1.5em; 
+}
+#current-rating-display { /* Adicionado para span do rating */
+    font-weight: bold;
+    margin-left: 8px;
+    color: var(--primary-color-light);
+}
+
+
+/* Edição Inline */
+.editable-input, .editable-textarea {
+    width: 100%; /* Ajustado para 100% */
+    padding: 8px;
+    border: 1px solid var(--primary-color-light);
+    border-radius: 4px; /* Ajustado border-radius */
+    box-sizing: border-box;
+    background-color: var(--input-bg-light);
+    color: var(--text-color-light);
+    font-size: 0.9em; /* Adicionado font-size */
+}
+.editable-textarea {
+    min-height: 60px;
+    resize: vertical;
+}
+
+/* Estilos para Abas de Categoria */
+.tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--border-color-light);
+}
+
+.tab-button {
+    padding: 8px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95em;
+    font-weight: 500;
+    transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    border: 1px solid var(--border-color-light);
+    background-color: #e9ecef; /* Fundo para tema claro */
+    color: var(--text-secondary-color-light);
+}
+.tab-button:hover {
+    background-color: #dce3e8;
+    color: var(--primary-color-light);
+}
+.tab-button.active {
+    background-color: var(--primary-color-light);
+    color: #fff; /* Texto branco */
+    border-color: var(--primary-color-light);
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+}
+
+/* Mensagem de Tabela Vazia */
+.empty-message {
+    text-align: center !important;
+    font-style: italic;
+    padding: 20px !important;
+    color: var(--text-secondary-color-light);
+}
+
+/* Modal de Confirmação */
+.modal {
+    position: fixed;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+.modal-content {
+    background-color: var(--card-background-light);
+    color: var(--text-color-light);
+    padding: 25px 30px;
+    border-radius: 8px;
+    text-align: center;
+    min-width: 320px;
+    max-width: 450px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+.modal-content p {
+    margin-bottom: 25px;
+    font-size: 1.1em;
+    line-height: 1.5;
+}
+.modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+.modal-content button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.95em;
+    min-width: 100px;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+.modal-content button:hover { opacity: 0.9; }
+.modal-content button:active { transform: translateY(1px); }
+
+.btn-confirm {
+    background-color: var(--danger-color-light);
+    color: #fff; /* Texto branco é importante aqui */
+}
+.btn-confirm.positive-action {
+    background-color: var(--success-color-light);
+}
+.btn-cancel {
+    background-color: #6c757d; /* Cinza padrão */
+    color: #fff; /* Texto branco */
+}
+.btn-cancel:hover {
+    background-color: #5a6268;
+}
+
+
+/* ----------------- DARK MODE STYLES ----------------- */
+body.dark-mode {
+    background-color: var(--background-color-dark);
+    color: var(--text-color-dark);
+}
+
+body.dark-mode .container {
+    background-color: var(--card-background-dark);
+    box-shadow: var(--shadow-dark);
+}
+
+body.dark-mode header {
+    border-bottom-color: var(--border-color-dark);
+}
+body.dark-mode header h1 {
+    color: var(--primary-color-dark);
+}
+
+body.dark-mode .controls button, 
+body.dark-mode .button-like-label {
+    border-color: var(--primary-color-dark);
+    color: var(--primary-color-dark);
+}
+body.dark-mode .controls button:hover, 
+body.dark-mode .button-like-label:hover {
+    background-color: var(--primary-color-dark);
+    color: var(--card-background-dark); /* Cor do card para contraste */
+}
+
+body.dark-mode #item-form {
+    border-color: var(--border-color-dark);
+    background-color: var(--background-color-dark);
+}
+body.dark-mode #item-form h2 {
+    color: var(--primary-color-dark);
+}
+body.dark-mode #item-form label {
+    color: var(--text-secondary-color-dark);
+}
+body.dark-mode #item-form input[type="text"],
+body.dark-mode #item-form textarea {
+    border-color: var(--input-border-dark);
+    background-color: var(--input-bg-dark);
+    color: var(--text-color-dark);
+}
+body.dark-mode #item-form input[type="text"]:focus,
+body.dark-mode #item-form textarea:focus {
+    border-color: var(--primary-color-dark);
+    box-shadow: 0 0 0 0.2rem rgba(0, 132, 255, 0.25);
+}
+
+body.dark-mode #item-form button[type="submit"].btn-add {
+    background-color: var(--primary-color-dark);
+    color: var(--card-background-dark); /* Texto escuro para contraste */
+}
+body.dark-mode #item-form button[type="submit"].btn-add:hover {
+    background-color: var(--secondary-color-dark);
+}
+
+body.dark-mode .list-container h2 {
+    color: var(--primary-color-dark);
+}
+
+body.dark-mode #items-table th,
+body.dark-mode #items-table td {
+    border-color: var(--border-color-dark);
+}
+body.dark-mode #items-table thead th {
+    background-color: #2c323f;
+    color: var(--text-secondary-color-dark);
+}
+body.dark-mode #items-table tbody tr:nth-child(even) {
+    background-color: #282d37; 
+}
+
+body.dark-mode .edit-btn { background-color: var(--warning-color-dark); color: #333; } /* Texto escuro para contraste com amarelo */
+body.dark-mode .delete-btn { background-color: var(--danger-color-dark); }
+body.dark-mode .save-btn { background-color: var(--success-color-dark); }
+body.dark-mode .cancel-btn { background-color: #5a6268; }
+
+
+body.dark-mode .star-rating-input .star,
+body.dark-mode .star-rating-display .star {
+    color: var(--star-empty-dark);
+}
+body.dark-mode .star-rating-input .star.filled,
+body.dark-mode .star-rating-display .star.filled {
+    color: var(--star-filled-dark);
+}
+body.dark-mode #current-rating-display {
+    color: var(--primary-color-dark);
+}
+
+body.dark-mode .editable-input, 
+body.dark-mode .editable-textarea {
+    border-color: var(--primary-color-dark);
+    background-color: var(--input-bg-dark);
+    color: var(--text-color-dark);
+}
+
+body.dark-mode .tabs {
+    border-bottom-color: var(--border-color-dark);
+}
+body.dark-mode .tab-button {
+    background-color: #2c323f;
+    color: var(--text-secondary-color-dark);
+    border-color: var(--border-color-dark);
+}
+body.dark-mode .tab-button:hover {
+    background-color: #3a4250; /* Ajustado hover do dark mode para tab */
+    color: var(--primary-color-dark); /* Ajustado hover do dark mode para tab */
+}
+body.dark-mode .tab-button.active {
+    background-color: var(--primary-color-dark);
+    color: var(--card-background-dark);
+    border-color: var(--primary-color-dark);
+    box-shadow: 0 2px 4px rgba(0, 132, 255, 0.25);
+}
+
+body.dark-mode .empty-message {
+    color: var(--text-secondary-color-dark);
+}
+
+body.dark-mode .modal-content {
+    background-color: var(--card-background-dark);
+    color: var(--text-color-dark);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+body.dark-mode .btn-confirm {
+    background-color: var(--danger-color-dark);
+}
+body.dark-mode .btn-confirm.positive-action {
+    background-color: var(--success-color-dark);
+}
+body.dark-mode .btn-cancel {
+    background-color: #5a6268; /* Mantido o cinza escuro, texto já é branco */
+}
+body.dark-mode .btn-cancel:hover {
+    background-color: #495057;
+}
+
+/* Responsividade básica */
+@media (max-width: 768px) {
+    body { padding: 10px; } /* Menos padding em telas pequenas */
+    .container { padding: 15px; }
+    header {
+        flex-direction: column;
+        gap: 15px;
+    }
+    .controls {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+    }
+    .controls button, .button-like-label {
+        margin-left: 0; 
+        flex-grow: 1; 
+        min-width: 130px; /* Aumentado um pouco */
+    }
+    .form-grid {
+        grid-template-columns: 1fr; 
+    }
+    #items-table th, #items-table td {
+        padding: 10px 8px; /* Ajustado padding */
+        font-size: 0.85em;
+    }
+    #items-table td button {
+        padding: 6px 8px; /* Ajustado padding */
+        font-size: 0.85em; /* Ajustado font-size */
+        gap: 4px; /* Menor gap para ícones */
+    }
+    .modal-content {
+        min-width: calc(100% - 40px); /* Modal usa mais da tela */
+        max-width: calc(100% - 40px);
+        padding: 20px;
+    }
+    .modal-buttons {
+        flex-direction: column; /* Botões do modal empilhados */
+    }
+}
+
+
+/* Estilos Gerais da App */
+.app-container {
+    max-width: 1200px; /* Ou o que você tinha para .container */
+    margin: 0 auto;
+    padding: 0 20px; /* Padding nas laterais */
+}
+
+/* Seção de Autenticação */
+.auth-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 80vh; /* Para centralizar verticalmente na tela */
+    padding: 20px;
+}
+
+.auth-form-container {
+    background-color: var(--card-background-light); /* Usa variável de tema */
+    padding: 30px 40px;
+    border-radius: 8px;
+    box-shadow: var(--shadow-light); /* Usa variável de tema */
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 20px;
+}
+body.dark-mode .auth-form-container {
+    background-color: var(--card-background-dark);
+    box-shadow: var(--shadow-dark);
+}
+
+.auth-form-container h2 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: var(--primary-color-light); /* Usa variável de tema */
+}
+body.dark-mode .auth-form-container h2 {
+    color: var(--primary-color-dark);
+}
+.auth-form-container h2 i {
+    margin-right: 10px;
+}
+
+.auth-form-container .form-group {
+    margin-bottom: 15px;
+}
+.auth-form-container label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: var(--text-secondary-color-light); /* Usa variável de tema */
+}
+body.dark-mode .auth-form-container label {
+    color: var(--text-secondary-color-dark);
+}
+
+.auth-form-container input[type="email"],
+.auth-form-container input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--input-border-light); /* Usa variável de tema */
+    border-radius: 4px;
+    box-sizing: border-box;
+    background-color: var(--input-bg-light); /* Usa variável de tema */
+    color: var(--text-color-light); /* Usa variável de tema */
+}
+body.dark-mode .auth-form-container input[type="email"],
+body.dark-mode .auth-form-container input[type="password"] {
+    border-color: var(--input-border-dark);
+    background-color: var(--input-bg-dark);
+    color: var(--text-color-dark);
+}
+
+.btn-auth {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--primary-color-light); /* Usa variável de tema */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+.btn-auth:hover {
+    background-color: var(--secondary-color-light); /* Usa variável de tema */
+}
+body.dark-mode .btn-auth {
+    background-color: var(--primary-color-dark);
+}
+body.dark-mode .btn-auth:hover {
+    background-color: var(--secondary-color-dark);
+}
+
+.auth-switch {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 0.9em;
+}
+.auth-switch a {
+    color: var(--primary-color-light); /* Usa variável de tema */
+    text-decoration: none;
+    font-weight: 500;
+}
+.auth-switch a:hover {
+    text-decoration: underline;
+}
+body.dark-mode .auth-switch a {
+    color: var(--primary-color-dark);
+}
+
+.auth-error {
+    color: var(--danger-color-light); /* Usa variável de tema */
+    text-align: center;
+    margin-top: 10px;
+    font-size: 0.9em;
+    min-height: 1.2em; /* Para evitar que o layout salte */
+}
+body.dark-mode .auth-error {
+    color: var(--danger-color-dark);
+}
+
+/* Ajustes no Header para status do usuário e logout */
+header {
+    /* flex-wrap: wrap; /* Para telas menores se necessário */
+}
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+.user-email {
+    font-size: 0.85em;
+    /* color: var(--text-secondary-color-light); /* Já herdado */
+    background-color: rgba(0,0,0,0.05);
+    padding: 3px 8px;
+    border-radius: 4px;
+}
+body.dark-mode .user-email {
+    background-color: rgba(255,255,255,0.1);
+}
+
+#logout-button {
+    /* Estilos similares aos outros .controls button */
+    /* Pode adicionar uma cor específica se desejar, ex: perigo */
+    /* background-color: var(--danger-color-light); */
+    /* color: white; */
+}
+
+/* Seus estilos existentes para .container, #item-form, .tabs, #items-table, .modal etc. devem ser mantidos */
+/* Certifique-se que os seletores de tema usem .light-mode e .dark-mode */
+/* Exemplo de correção de tema nos seletores: */
+
+/* Estilos Base e Tema Claro como Padrão (ou com .light-mode) */
+body, body.light-mode { /* Adicionado .light-mode aqui para especificidade se necessário */
+    font-family: var(--font-family);
+    margin: 0;
+    padding: 0; /* Padding será no .app-container ou .container interno */
+    background-color: var(--background-color-light);
+    color: var(--text-color-light);
+    transition: background-color 0.3s, color 0.3s;
+    line-height: var(--line-height);
+}
+
+body.dark-mode {
+    background-color: var(--background-color-dark);
+    color: var(--text-color-dark);
+}
+
+body.light-mode .container { /* Exemplo de como aplicar a outros elementos */
+    background-color: var(--card-background-light);
+    box-shadow: var(--shadow-light);
+}
+body.dark-mode .container {
+    background-color: var(--card-background-dark);
+    box-shadow: var(--shadow-dark);
+}
