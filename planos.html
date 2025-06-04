@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Planos - Minha Lista de Itens</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+  </head>
+  <body class="light-mode">
+    <nav class="navbar">
+      <div class="nav-container">
+        <a href="index.html" class="nav-logo"
+          ><i class="fas fa-list-check"></i> ListaSuper</a
+        >
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="index.html#features" class="nav-link">Funcionalidades</a>
+          </li>
+          <li class="nav-item">
+            <a href="planos.html" class="nav-link active">Planos</a>
+          </li>
+          <li class="nav-item">
+            <a href="app.html" class="nav-link nav-cta-login">Entrar</a>
+          </li>
+          <li class="nav-item">
+            <a href="app.html#signup" class="nav-link nav-cta-signup"
+              >Cadastre-se Grátis</a
+            >
+          </li>
+        </ul>
+        <div class="nav-toggler">
+          <i class="fas fa-bars"></i>
+        </div>
+      </div>
+    </nav>
+
+    <header class="page-header">
+      <div class="section-container">
+        <h1>Escolha o Plano Ideal para Você</h1>
+        <p>
+          Organização simples para todos, poder extra para quem precisa mais.
+        </p>
+      </div>
+    </header>
+
+    <section class="plans-section">
+      <div class="section-container">
+        <div class="plans-grid">
+          <div class="plan-card">
+            <div class="plan-header">
+              <h3>Gratuito</h3>
+              <p class="plan-price">
+                R$ 0 <span class="plan-period">/para sempre</span>
+              </p>
+            </div>
+            <ul class="plan-features">
+              <li>
+                <i class="fas fa-check-circle"></i> Gerenciamento básico de
+                itens
+              </li>
+              <li>
+                <i class="fas fa-check-circle"></i> Armazenamento Local (no seu
+                navegador)
+              </li>
+              <li><i class="fas fa-check-circle"></i> Limite de 50 itens</li>
+              <li>
+                <i class="fas fa-check-circle"></i> Categorias e Marcas/Modelos
+              </li>
+              <li><i class="fas fa-check-circle"></i> Ranking com estrelas</li>
+              <li>
+                <i class="fas fa-check-circle"></i> Temas Claro e Escuro (salvos
+                localmente)
+              </li>
+              <li>
+                <i class="fas fa-times-circle feature-limited"></i>
+                Sincronização na Nuvem
+              </li>
+              <li>
+                <i class="fas fa-times-circle feature-limited"></i> Backup
+                Seguro na Nuvem
+              </li>
+              <li>
+                <i class="fas fa-times-circle feature-limited"></i> Preferência
+                de tema salva na conta
+              </li>
+            </ul>
+            <a href="app.html#signup" class="btn btn-secondary btn-block"
+              >Começar Gratuitamente</a
+            >
+          </div>
+
+          <div class="plan-card plan-premium">
+            <div class="plan-badge">Mais Popular</div>
+            <div class="plan-header">
+              <h3>Premium</h3>
+              <p class="plan-price">
+                R$ 9,90 <span class="plan-period">/mês</span>
+              </p>
+            </div>
+            <ul class="plan-features">
+              <li>
+                <i class="fas fa-check-circle"></i> Todas as funcionalidades
+                gratuitas
+              </li>
+              <li>
+                <i class="fas fa-star"></i> **Sincronização na Nuvem
+                (Firebase)**
+              </li>
+              <li>
+                <i class="fas fa-star"></i> **Backup Seguro e Automático**
+              </li>
+              <li><i class="fas fa-star"></i> **Itens Ilimitados**</li>
+              <li>
+                <i class="fas fa-star"></i> **Preferência de tema salva na sua
+                conta**
+              </li>
+              <li>
+                <i class="fas fa-check-circle"></i> Acesso de múltiplos
+                dispositivos
+              </li>
+              <li>
+                <i class="fas fa-check-circle"></i> Suporte prioritário (futuro)
+              </li>
+              <li>
+                <i class="fas fa-check-circle"></i> Funcionalidades exclusivas
+                (futuro)
+              </li>
+            </ul>
+            <a href="app.html#signup" class="btn btn-primary btn-block"
+              >Assinar Premium</a
+            >
+            <p class="plan-note">
+              O processo de assinatura será implementado em breve. Ao se
+              cadastrar, você poderá ser um dos primeiros a testar!
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="section-container">
+        <p>
+          &copy; <span id="current-year"></span> ListaSuper. Todos os direitos
+          reservados.
+        </p>
+      </div>
+    </footer>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const navToggler = document.querySelector(".nav-toggler");
+        const navMenu = document.querySelector(".nav-menu");
+        if (navToggler && navMenu) {
+          navToggler.addEventListener("click", () => {
+            navMenu.classList.toggle("active");
+          });
+        }
+        document.getElementById("current-year").textContent =
+          new Date().getFullYear();
+      });
+    </script>
+  </body>
+</html>
