@@ -780,12 +780,46 @@ body.dark-mode .container {
 .list-container h2 {
     color: var(--primary-color);
     font-size: 1.5em;
-    margin-bottom: 20px;
-
+    margin: 0;
 }
 
 .list-container h2 i {
     margin-right: 8px;
+}
+
+.list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.list-header button {
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9em;
+    border: 1px solid var(--primary-color);
+    background-color: transparent;
+    color: var(--primary-color);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.list-header button:hover {
+    background-color: var(--primary-color);
+    color: var(--card-background);
+}
+
+body.dark-mode .list-header button {
+    border-color: var(--primary-color-dark);
+    color: var(--primary-color-dark);
+}
+
+body.dark-mode .list-header button:hover {
+    background-color: var(--primary-color-dark);
+    color: var(--card-background-dark);
 }
 
 body.dark-mode .list-container h2 {
