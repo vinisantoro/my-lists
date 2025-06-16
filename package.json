@@ -1,0 +1,13 @@
+{
+  "name": "My Favorites List",
+  "version": "1.0.0",
+  "description": "Um simples site em HTML, CSS e JavaScript.",
+  "main": "index.html",
+  "scripts": {
+    "start": "echo 'Nenhum script de inicialização configurado. Abra o index.html diretamente no navegador.'",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Vinicius Correa <vini.santoro@gmail.com>",
+  "license": "ISC"
+}
