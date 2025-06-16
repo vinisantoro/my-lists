@@ -81,6 +81,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let themeToggleIcon = themeToggleButton ? themeToggleButton.querySelector('i') : null;
     const exportButton = document.getElementById('export-data');
     const importFileInput = document.getElementById('import-file');
+    const deleteCategoryButton = document.getElementById('delete-category');
+    const shareListButton = document.getElementById('share-list');
     const confirmationModal = document.getElementById('confirmation-modal');
     const modalMessage = document.getElementById('modal-message');
     const modalConfirmBtn = document.getElementById('modal-confirm-btn');
@@ -528,9 +530,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Verifica se os elementos existem no DOM antes de tentar usá-los
         // Isso é útil se este script for incluído em páginas que não têm todos esses elementos
         if (document.body.contains(categoryTabsContainer) && document.body.contains(itemsTableBody)) {
-            renderCategoryTabs(); 
-            renderItems(); 
-            updateAutocompleteLists(); 
+            renderCategoryTabs();
+            renderItems();
+            updateAutocompleteLists();
+            updateCategoryControls();
         }
         
         // Garante que as estrelas no formulário de adição sejam recriadas/resetadas
@@ -630,7 +633,7 @@ document.addEventListener('DOMContentLoaded', () => {
      * @param {string} itemId - O ID do item a ser excluído.
      */
     async function deleteItemAction(itemId) {
-        const itemToDelete = items.find(item => item.id === itemId); 
+        const itemToDelete = items.find(item => item.id === itemId);
         if (!itemToDelete) return;
 
         try {
@@ -652,6 +655,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function deleteAllItemsOfCategory(category) {
+        if (modoOperacao === 'firebase' && currentUser) {
+            const snapshot = await db.collection('items').where('userId', '==', currentUser.uid).where('category', '==', category).get();
+            const batch = db.batch();
+            snapshot.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+        } else {
+            items = items.filter(it => it.category !== category);
+            lsDataManager.saveItems(items);
+            renderAppUI();
+        }
+        const remainingCategories = [...new Set(items.map(it => it.category))];
+        if (!remainingCategories.includes(category)) activeCategory = 'all';
+    }
+
+    async function shareListWithEmail(email, permission) {
+        if (!currentUser || !userProfile || !userProfile.isPremium) return;
+        try {
+            await db.collection('sharedLists').add({ ownerId: currentUser.uid, invitedEmail: email, permission });
+            showInfoModal('Lista compartilhada com sucesso!', true);
+        } catch (e) {
+            console.error('Erro ao compartilhar lista:', e);
+            showInfoModal('Erro ao compartilhar lista.');
+        }
+    }
+
     // Funções para iniciar e cancelar a edição inline de um item
     function startEditItem(itemId) { editingItemId = itemId; renderItems(); }
     function cancelEdit() { editingItemId = null; renderItems(); }
@@ -663,7 +692,7 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Atualiza as listas de datalist para autocomplete de categoria e marca/modelo.
      */
-function updateAutocompleteLists() { 
+function updateAutocompleteLists() {
     if (!categoryList || !brandList) return;
     
     // Limpa as listas para evitar duplicatas
@@ -687,6 +716,20 @@ function updateAutocompleteLists() {
         brandList.appendChild(option);
     });
 }
+
+    function updateCategoryControls() {
+        if (deleteCategoryButton) {
+            if (activeCategory === 'all') {
+                deleteCategoryButton.style.display = 'none';
+            } else {
+                const hasItems = items.some(it => it.category === activeCategory);
+                deleteCategoryButton.style.display = hasItems ? 'inline-block' : 'none';
+            }
+        }
+        if (shareListButton) {
+            shareListButton.style.display = (currentUser && userProfile.isPremium) ? 'inline-block' : 'none';
+        }
+    }
 
     /**
      * Renderiza as abas de filtro por categoria.
@@ -714,8 +757,8 @@ function updateAutocompleteLists() {
     /**
      * Renderiza os itens na tabela, filtrados pela categoria ativa.
      */
-    function renderItems() { 
-        if (!itemsTableBody) return; 
+    function renderItems() {
+        if (!itemsTableBody) return;
         itemsTableBody.innerHTML = '';
         const itemsToRender = activeCategory === 'all' ? items : items.filter(item => item.category === activeCategory);
         
@@ -797,6 +840,7 @@ function updateAutocompleteLists() {
                 });
             }
         });
+        updateCategoryControls();
     }
 
     // ---------------------------------------------------------------------------
@@ -952,14 +996,26 @@ function updateAutocompleteLists() {
                 }
             };
             reader.readAsText(file);
-         });
+        });
     }
 
-    // ---------------------------------------------------------------------------
-    // INICIALIZAÇÃO DA UI (CHAMADA PELO LISTENER onAuthStateChanged ou botão de convidado)
-    // ---------------------------------------------------------------------------
-    // Nenhuma chamada explícita a loadAndRenderData() aqui no final, pois
-    // o onAuthStateChanged ou o clique no botão de convidado cuidarão da configuração inicial da UI e dos dados.
-    // A primeira aplicação do tema (padrão ou do localStorage) é feita no onAuthStateChanged se não houver usuário,
-    // ou após carregar o perfil do usuário.
+    if (deleteCategoryButton) {
+        deleteCategoryButton.addEventListener('click', () => {
+            if (activeCategory === 'all') return;
+            const count = items.filter(it => it.category === activeCategory).length;
+            if (count === 0) return;
+            showConfirmationModal(`Remover todos os ${count} itens da categoria "${activeCategory}"?`, () => deleteAllItemsOfCategory(activeCategory));
+        });
+    }
+
+    if (shareListButton) {
+        shareListButton.addEventListener('click', async () => {
+            if (!currentUser || !userProfile.isPremium) { showInfoModal('Função disponível apenas para usuários premium.'); return; }
+            const email = prompt('Digite o email para compartilhar a lista:');
+            if (!email) return;
+            const permission = confirm('Permitir edição para o usuário se ele for Premium? Clique OK para permitir.') ? 'write' : 'read';
+            await shareListWithEmail(email, permission);
+        });
+    }
+
 });

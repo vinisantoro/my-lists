@@ -24,6 +24,7 @@ Este é um sistema web interativo projetado para ajudar usuários a catalogar e 
   - **Listagem em Tabela:** Apresentação clara dos itens em formato de tabela, exibindo marca/modelo, nome do produto, anotações e o ranking em estrelas.
 - **Editar Itens:** Modificação dos dados de um item diretamente na linha da tabela (edição inline), facilitando atualizações rápidas.
 - **Excluir Itens:** Remoção de itens com uma etapa de confirmação através de um modal, prevenindo exclusões acidentais.
+- **Excluir Categoria Inteira:** Possibilidade de remover todos os itens de uma categoria selecionada de uma só vez.
 
 ### 3. Interface de Usuário e Experiência
 
@@ -38,6 +39,14 @@ Este é um sistema web interativo projetado para ajudar usuários a catalogar e 
 
 - **Exportar Dados:** Funcionalidade para o usuário exportar todos os seus itens (e sua preferência de tema) para um arquivo JSON local, servindo como backup manual.
 - **Importar Dados:** Capacidade de importar itens de um arquivo JSON (previamente exportado). Os itens importados são adicionados à lista existente do usuário no Firebase. O tema salvo no arquivo também pode ser aplicado.
+
+### 5. Compartilhamento de Listas (Premium)
+
+- **Compartilhar por Email:** Usuários Premium podem compartilhar sua lista completa com outro email.
+- **Permissões Dinâmicas:** O convidado terá acesso somente leitura se for convidado sem ser Premium e poderá editar caso possua conta Premium.
+
+Para habilitar o compartilhamento é necessário criar no Firestore a coleção `sharedLists` com documentos contendo `ownerId`, `invitedEmail` e `permission` (`read` ou `write`).
+As regras de segurança devem permitir leitura dos itens quando existir um registro nessa coleção vinculando o email do usuário logado ao `ownerId` da lista. Para escrita, verifique também se o usuário convidado possui `isPremium: true` em `userProfiles`.
 
 ## Tecnologia Utilizada
 
@@ -59,3 +68,12 @@ Este sistema evoluiu de uma versão inicial que utilizava o `localStorage` do na
 ## Melhorias Recentes
 - Geração de IDs agora utiliza `crypto.randomUUID()` quando disponível, aumentando a segurança.
 - Operações em modo localStorage evitam recarregar todo o conjunto de itens, reduzindo leituras.
+- Inclusão de botão para excluir todos os itens de uma categoria.
+- Possibilidade de compartilhar listas via email para usuários Premium, com permissões ajustadas pelo plano do convidado.
+
+### Passos Adicionais no Firebase para o Compartilhamento
+
+1. Crie uma coleção chamada `sharedLists` no Firestore.
+2. Cada documento deve conter os campos `ownerId`, `invitedEmail` e `permission` (`read` ou `write`).
+3. Ajuste as regras de segurança para permitir leitura de itens quando houver um documento em `sharedLists` que relacione o email logado com o `ownerId` do item.
+4. Para escrita, as regras devem também verificar se o usuário convidado possui `isPremium: true` em `userProfiles`.
