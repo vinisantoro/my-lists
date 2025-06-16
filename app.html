@@ -113,17 +113,47 @@
       </div>
 
       <div id="app-content" style="display: none">
-        <div class="container">
+        <section id="lists-section">
+          <div class="container">
+            <header class="list-header">
+              <h1><i class="fas fa-list"></i> Minhas Listas</h1>
+              <div class="controls">
+                <button id="theme-toggle-lists" class="theme-toggle" aria-label="Alternar Tema">
+                  <i class="fas fa-moon"></i>
+                </button>
+                <button id="create-list"><i class="fas fa-plus"></i> Criar Lista</button>
+              </div>
+            </header>
+            <div class="table-wrapper">
+              <table id="lists-table">
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>Criada em</th>
+                    <th>Atualizada em</th>
+                    <th>Dono</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section id="items-section" style="display: none">
+          <div class="container">
           <header>
-            <div class="header-left">
-              <h1>
-                <i class="fas fa-list-check"></i> Minha Lista
-                <span id="mode-indicator"></span>
-              </h1>
+              <div class="header-left">
+                <h1>
+                  <i class="fas fa-list-check"></i>
+                  <span id="list-name" contenteditable="true">Minha Lista</span>
+                  <span id="mode-indicator"></span>
+                </h1>
               <span id="user-email-display" class="user-email"></span>
             </div>
             <div class="controls">
-              <button id="theme-toggle" aria-label="Alternar Tema">
+              <button id="theme-toggle" class="theme-toggle" aria-label="Alternar Tema">
                 <i class="fas fa-moon"></i>
               </button>
               <button id="export-data">
@@ -138,9 +168,12 @@
                 accept=".json"
                 style="display: none"
               />
-              <button id="share-list" style="display: none">
-                <i class="fas fa-share-alt"></i> Compartilhar Lista
-              </button>
+                <button id="share-list" style="display: none">
+                  <i class="fas fa-share-alt"></i> Compartilhar Lista
+                </button>
+                <button id="back-to-lists" style="display: none">
+                  <i class="fas fa-list"></i> Listas
+                </button>
               <button
                 id="upgrade-to-premium"
                 style="display: none"
@@ -236,8 +269,8 @@
             </div>
           </div>
         </div>
+        </section>
       </div>
-    </div>
 
     <div id="share-modal" class="modal">
       <div class="modal-content">
@@ -270,6 +303,22 @@
             >
               Salvar
             </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="create-list-modal" class="modal">
+      <div class="modal-content">
+        <h2><i class="fas fa-plus"></i> Nova Lista</h2>
+        <form id="create-list-form">
+          <div class="form-group">
+            <label for="new-list-name">Nome:</label>
+            <input type="text" id="new-list-name" required />
+          </div>
+          <div class="modal-buttons">
+            <button type="button" id="create-list-cancel" class="btn-cancel">Cancelar</button>
+            <button type="submit" id="create-list-save" class="btn-confirm positive-action">Salvar</button>
           </div>
         </form>
       </div>
