@@ -77,6 +77,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const itemsSection = document.getElementById('items-section');
     const listsTableBody = document.querySelector('#lists-table tbody');
     const createListButton = document.getElementById('create-list');
+    const createListModal = document.getElementById('create-list-modal');
+    const createListForm = document.getElementById('create-list-form');
+    const newListNameInput = document.getElementById('new-list-name');
+    const createListCancel = document.getElementById('create-list-cancel');
     const backToListsButton = document.getElementById('back-to-lists');
     const listNameDisplay = document.getElementById('list-name');
 
@@ -84,8 +88,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const categoryTabsContainer = document.getElementById('category-tabs-container');
 
     // Controles Gerais e Modal
-    const themeToggleButton = document.getElementById('theme-toggle');
-    let themeToggleIcon = themeToggleButton ? themeToggleButton.querySelector('i') : null;
+    const themeToggleButtons = document.querySelectorAll('.theme-toggle');
+    let themeToggleIcons = Array.from(themeToggleButtons).map(btn => btn.querySelector('i'));
     const exportButton = document.getElementById('export-data');
     const importFileInput = document.getElementById('import-file');
     const deleteCategoryButton = document.getElementById('delete-category');
@@ -372,9 +376,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const themeToApply = (theme === 'dark' || theme === 'light') ? theme : 'light'; // Garante valor válido
         document.body.classList.add(themeToApply === 'dark' ? 'dark-mode' : 'light-mode');
         
-        if (themeToggleIcon) {
-            themeToggleIcon.className = themeToApply === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-        }
+        themeToggleIcons.forEach(icon => {
+            if (icon) icon.className = themeToApply === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        });
 
         // Salva a preferência de tema
         if (modoOperacao === 'firebase' && currentUser && userProfile) {
@@ -389,10 +393,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Listener para o botão de alternar tema
-    if (themeToggleButton) {
-        themeToggleButton.addEventListener('click', () => {
-            const isDarkMode = document.body.classList.contains('dark-mode');
-            applyTheme(isDarkMode ? 'light' : 'dark');
+    if (themeToggleButtons.length > 0) {
+        themeToggleButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const isDarkMode = document.body.classList.contains('dark-mode');
+                applyTheme(isDarkMode ? 'light' : 'dark');
+            });
         });
     }
 
@@ -1198,9 +1204,19 @@ function updateAutocompleteLists() {
         });
     }
 
-    if (createListButton) {
-        createListButton.addEventListener('click', async () => {
-            const name = prompt('Nome da nova lista:');
+    if (createListButton && createListModal && createListForm) {
+        createListButton.addEventListener('click', () => {
+            if (newListNameInput) newListNameInput.value = '';
+            createListModal.classList.add('show');
+        });
+
+        createListCancel.addEventListener('click', () => {
+            createListModal.classList.remove('show');
+        });
+
+        createListForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = newListNameInput.value.trim();
             if (!name) return;
             if (modoOperacao === 'firebase' && currentUser) {
                 const newList = await fbListManager.addList(currentUser.uid, name);
@@ -1211,6 +1227,13 @@ function updateAutocompleteLists() {
                 lsListManager.saveLists(lists);
             }
             renderLists();
+
+            createListModal.classList.remove('show');
+        });
+
+        createListModal.addEventListener('click', (e) => {
+            if (e.target === createListModal) createListModal.classList.remove('show');
+
         });
     }
 
