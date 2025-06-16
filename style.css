@@ -1972,9 +1972,38 @@ body.dark-mode #mode-indicator {
 }
 
 /* ===== Modal de Compartilhamento ===== */
+#share-form {
+    margin: 25px;
+}
+
+#share-form input {
+    background-color: white;
+    cursor: text;
+    padding: 5px;
+    border-width: 2px;
+    border-style: hidden;
+    border-color: initial;
+    border-image: initial;
+    border-radius: 6px;
+    -webkit-rtl-ordering: logical;
+    -webkit-appearance: textfield;
+}
+
+
+.share-date-group {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    margin-bottom: 10px;
+    justify-content: space-between;
+    border-radius: 5px;
+    font-weight: 500;
+}
+
 .switch-group {
     display: flex;
-    align-items: center;
+    flex-direction: row;
+    align-items: flex-start;
     justify-content: space-between;
     margin-bottom: 20px;
 }
@@ -2021,15 +2050,15 @@ body.dark-mode #mode-indicator {
     border-radius: 50%;
 }
 
-.switch input:checked + .slider-toggle {
+.switch input:checked+.slider-toggle {
     background-color: var(--primary-color);
 }
 
-body.dark-mode .switch input:checked + .slider-toggle {
+body.dark-mode .switch input:checked+.slider-toggle {
     background-color: var(--primary-color-dark);
 }
 
-.switch input:checked + .slider-toggle:before {
+.switch input:checked+.slider-toggle:before {
     transform: translateX(20px);
 }
 

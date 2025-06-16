@@ -211,7 +211,11 @@
               <h2 id="list-title">
                 <i class="fas fa-archive"></i> Itens Cadastrados
               </h2>
-              <button id="delete-category" class="btn-delete-category" style="display: none">
+              <button
+                id="delete-category"
+                class="btn-delete-category"
+                style="display: none"
+              >
                 <i class="fas fa-trash"></i> Excluir Categoria
               </button>
             </div>
@@ -232,42 +236,50 @@
             </div>
           </div>
         </div>
+      </div>
     </div>
-  </div>
 
-  <div id="share-modal" class="modal">
-    <div class="modal-content">
-      <h2><i class="fas fa-share-alt"></i> Compartilhar Lista</h2>
-      <form id="share-form">
-        <div class="form-group">
-          <label for="share-email">Email:</label>
-          <input
-            type="email"
-            id="share-email"
-            required
-            placeholder="usuario@exemplo.com"
-          />
-        </div>
-        <div class="form-group switch-group">
-          <label for="share-recording" class="switch-label">Gravação</label>
-          <label class="switch">
-            <input type="checkbox" id="share-recording" />
-            <span class="slider-toggle"></span>
-          </label>
-        </div>
+    <div id="share-modal" class="modal">
+      <div class="modal-content">
+        <h2><i class="fas fa-share-alt"></i> Compartilhar Lista</h2>
+        <form id="share-form">
+          <div class="form-group share-date-group">
+            <label for="share-email">Email:</label>
+            <input
+              type="email"
+              id="share-email"
+              required
+              placeholder="usuario@exemplo.com"
+            />
+          </div>
+          <div class="form-group switch-group">
+            <label for="share-recording" class="switch-label">Gravação</label>
+            <label class="switch">
+              <input type="checkbox" id="share-recording" />
+              <span class="slider-toggle"></span>
+            </label>
+          </div>
+          <div class="modal-buttons">
+            <button type="button" id="share-cancel-btn" class="btn-cancel">
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              id="share-save-btn"
+              class="btn-confirm positive-action"
+            >
+              Salvar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="confirmation-modal" class="modal">
+      <div class="modal-content">
+        <p id="modal-message">Tem certeza?</p>
         <div class="modal-buttons">
-          <button type="button" id="share-cancel-btn" class="btn-cancel">Cancelar</button>
-          <button type="submit" id="share-save-btn" class="btn-confirm positive-action">Salvar</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <div id="confirmation-modal" class="modal">
-    <div class="modal-content">
-      <p id="modal-message">Tem certeza?</p>
-      <div class="modal-buttons">
-        <button id="modal-confirm-btn" class="btn-confirm">Confirmar</button>
+          <button id="modal-confirm-btn" class="btn-confirm">Confirmar</button>
           <button id="modal-cancel-btn" class="btn-cancel">Cancelar</button>
         </div>
       </div>
