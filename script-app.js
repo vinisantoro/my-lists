@@ -1227,11 +1227,13 @@ function updateAutocompleteLists() {
                 lsListManager.saveLists(lists);
             }
             renderLists();
+
             createListModal.classList.remove('show');
         });
 
         createListModal.addEventListener('click', (e) => {
             if (e.target === createListModal) createListModal.classList.remove('show');
+
         });
     }
 
