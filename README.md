@@ -56,3 +56,6 @@ Este é um sistema web interativo projetado para ajudar usuários a catalogar e 
 ## Evolução do Projeto
 
 Este sistema evoluiu de uma versão inicial que utilizava o `localStorage` do navegador para armazenamento de dados para uma solução mais robusta e escalável, utilizando o Firebase para oferecer persistência na nuvem, autenticação segura e funcionalidades multiusuário.
+## Melhorias Recentes
+- Geração de IDs agora utiliza `crypto.randomUUID()` quando disponível, aumentando a segurança.
+- Operações em modo localStorage evitam recarregar todo o conjunto de itens, reduzindo leituras.

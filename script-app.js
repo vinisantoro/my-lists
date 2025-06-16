@@ -203,6 +203,9 @@ document.addEventListener('DOMContentLoaded', () => {
      * @returns {string} ID único.
      */
     function generateId() {
+        if (window.crypto && window.crypto.randomUUID) {
+            return window.crypto.randomUUID();
+        }
         return '_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
     }
 
@@ -567,9 +570,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     await activeDataManager.addItem(currentUser.uid, dataForFirebase); 
                     // O listener onSnapshot do Firebase atualizará a UI automaticamente
                 } else { // Modo LocalStorage
-                    activeDataManager.addItem(newItemData, items); // 'items' é modificado por referência
-                    items = activeDataManager.loadItems(); // Recarrega 'items' para garantir consistência com IDs
-                    renderAppUI(); // Re-renderiza manualmente para LocalStorage
+                activeDataManager.addItem(newItemData, items); // 'items' modificado por referência
+                renderAppUI(); // Re-renderiza manualmente para LocalStorage
                 }
                 // Limpa o formulário e reseta as estrelas
                 itemForm.reset(); 
@@ -606,8 +608,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (modoOperacao === 'firebase' && currentUser) { 
                 await activeDataManager.updateItem(itemId, updatedData); // onSnapshot do Firebase cuida da UI
             } else { // Modo LocalStorage
-                activeDataManager.updateItem(itemId, updatedData, items); 
-                items = activeDataManager.loadItems(); // Recarrega 'items'
+                activeDataManager.updateItem(itemId, updatedData, items);
                 renderAppUI(); // Re-renderiza para LocalStorage
             }
             editingItemId = null; 
