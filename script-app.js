@@ -591,7 +591,7 @@ document.addEventListener('DOMContentLoaded', () => {
      * @param {string} itemId - O ID do item a ser atualizado.
      */
     async function saveEditedItem(itemId) {
-        const row = document.querySelector(`#items-table tbody tr[data-id="${itemId}"]`); 
+        const row = document.querySelector(`#items-table tbody tr[data-id="${itemId}"]`);
         if (!row) return;
 
         const updatedData = {
@@ -602,6 +602,12 @@ document.addEventListener('DOMContentLoaded', () => {
             rating: parseFloat(row.querySelector('input[type="hidden"][data-field="rating"]').value) || 0,
         };
         if (!updatedData.name || !updatedData.brand || !updatedData.category) {
+            showInfoModal('Categoria, Marca/Modelo e Nome do Produto não podem ficar vazios.');
+            return;
+        }
+
+        try {
+            editingItemId = null; // Define como null antes de atualizar para evitar re-renderização em modo edição
             alert('Categoria, Marca/Modelo e Nome do Produto não podem ficar vazios.'); return;
         }
 
@@ -616,6 +622,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderAppUI(); // Re-renderiza para LocalStorage
                 alert('Alterações salvas com sucesso!');
             }
+            showInfoModal('Alterações salvas com sucesso!', true);
+            // renderItems(); // Não é estritamente necessário se renderAppUI é chamado ou onSnapshot está ativo
+        } catch (error) {
+            console.error("Erro ao atualizar item:", error);
+            showInfoModal("Erro ao atualizar item.");
             // renderItems(); // Não é estritamente necessário se renderAppUI é chamado ou onSnapshot está ativo
         } catch (error) {
             console.error("Erro ao atualizar item:", error);
@@ -832,6 +843,32 @@ function updateAutocompleteLists() {
                 actionToConfirm = null;
             }
         });
+    }
+
+    /**
+     * Exibe uma mensagem simples em modal, usando o modal de confirmação com apenas o botão OK.
+     * @param {string} message - Mensagem a ser exibida.
+     * @param {boolean} positive - Se verdadeiro, aplica estilo de ação positiva ao botão.
+     */
+    function showInfoModal(message, positive = false) {
+        if (!confirmationModal || !modalMessage || !modalConfirmBtn) {
+            alert(message);
+            return;
+        }
+        const originalText = modalConfirmBtn.textContent;
+        const hadPositive = modalConfirmBtn.classList.contains('positive-action');
+        modalMessage.textContent = message;
+        modalConfirmBtn.textContent = 'OK';
+        modalConfirmBtn.classList.toggle('positive-action', positive);
+        if (modalCancelBtn) modalCancelBtn.style.display = 'none';
+        actionToConfirm = null;
+        confirmationModal.classList.add('show');
+        const cleanup = () => {
+            modalConfirmBtn.textContent = originalText;
+            modalConfirmBtn.classList.toggle('positive-action', hadPositive);
+            if (modalCancelBtn) modalCancelBtn.style.display = '';
+        };
+        modalConfirmBtn.addEventListener('click', cleanup, { once: true });
     }
 
     // ---------------------------------------------------------------------------
