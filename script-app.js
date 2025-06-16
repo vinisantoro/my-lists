@@ -591,31 +591,34 @@ document.addEventListener('DOMContentLoaded', () => {
      * @param {string} itemId - O ID do item a ser atualizado.
      */
     async function saveEditedItem(itemId) {
-        const row = document.querySelector(`#items-table tbody tr[data-id="${itemId}"]`); 
+        const row = document.querySelector(`#items-table tbody tr[data-id="${itemId}"]`);
         if (!row) return;
 
-        const updatedData = { 
-            brand: row.querySelector('input[data-field="brand"]').value.trim(), 
+        const updatedData = {
+            category: row.querySelector('input[data-field="category"]').value.trim(),
+            brand: row.querySelector('input[data-field="brand"]').value.trim(),
             name: row.querySelector('input[data-field="name"]').value.trim(),
-            notes: row.querySelector('textarea[data-field="notes"]').value.trim(), 
+            notes: row.querySelector('textarea[data-field="notes"]').value.trim(),
             rating: parseFloat(row.querySelector('input[type="hidden"][data-field="rating"]').value) || 0,
         };
-        if (!updatedData.name || !updatedData.brand ) { 
-            alert('Marca/Modelo e Nome do Produto não podem ficar vazios.'); return; 
+        if (!updatedData.name || !updatedData.brand || !updatedData.category) {
+            showInfoModal('Categoria, Marca/Modelo e Nome do Produto não podem ficar vazios.');
+            return;
         }
 
         try {
-            if (modoOperacao === 'firebase' && currentUser) { 
+            editingItemId = null; // Define como null antes de atualizar para evitar re-renderização em modo edição
+            if (modoOperacao === 'firebase' && currentUser) {
                 await activeDataManager.updateItem(itemId, updatedData); // onSnapshot do Firebase cuida da UI
             } else { // Modo LocalStorage
                 activeDataManager.updateItem(itemId, updatedData, items);
                 renderAppUI(); // Re-renderiza para LocalStorage
             }
-            editingItemId = null; 
+            showInfoModal('Alterações salvas com sucesso!', true);
             // renderItems(); // Não é estritamente necessário se renderAppUI é chamado ou onSnapshot está ativo
-        } catch (error) { 
-            console.error("Erro ao atualizar item:", error); 
-            alert("Erro ao atualizar item."); 
+        } catch (error) {
+            console.error("Erro ao atualizar item:", error);
+            showInfoModal("Erro ao atualizar item.");
         }
     }
     
@@ -713,15 +716,24 @@ function updateAutocompleteLists() {
         itemsTableBody.innerHTML = '';
         const itemsToRender = activeCategory === 'all' ? items : items.filter(item => item.category === activeCategory);
         
-        if (itemsToRender.length === 0) { 
-            itemsTableBody.innerHTML = `<tr><td colspan="5" class="empty-message">Nenhum item para exibir nesta categoria.</td></tr>`; 
-            return; 
+        if (itemsToRender.length === 0) {
+            itemsTableBody.innerHTML = `<tr><td colspan="6" class="empty-message">Nenhum item para exibir nesta categoria.</td></tr>`;
+            return;
         }
         itemsToRender.forEach(item => {
-            const row = itemsTableBody.insertRow(); 
-            row.dataset.id = item.id; 
-            if (editingItemId === item.id) { 
+            const row = itemsTableBody.insertRow();
+            row.dataset.id = item.id;
+            if (editingItemId === item.id) {
                 // Modo de Edição
+                const categoryCell = row.insertCell();
+                const categoryInputEdit = document.createElement('input');
+                categoryInputEdit.type = 'text';
+                categoryInputEdit.className = 'editable-input';
+                categoryInputEdit.value = item.category || '';
+                categoryInputEdit.dataset.field = 'category';
+                categoryInputEdit.setAttribute('list', 'category-list');
+                categoryCell.appendChild(categoryInputEdit);
+
                 const brandCell = row.insertCell();
                 const brandInput = document.createElement('input');
                 brandInput.type = 'text';
@@ -761,13 +773,14 @@ function updateAutocompleteLists() {
                 actionsCell.innerHTML = `<button class="save-btn" title="Salvar"><i class="fas fa-save"></i></button> <button class="cancel-btn" title="Cancelar"><i class="fas fa-times"></i></button>`;
                 actionsCell.querySelector('.save-btn').addEventListener('click', () => saveEditedItem(item.id));
                 actionsCell.querySelector('.cancel-btn').addEventListener('click', () => cancelEdit());
-            } else { 
+            } else {
                 // Modo de Visualização
-                 row.insertCell().textContent = item.brand || '-'; 
-    row.insertCell().textContent = item.name || '-';
-    const notesCell = row.insertCell(); 
-    notesCell.textContent = item.notes || '-'; // <-- CORRIGIDO: usa textContent
-    notesCell.style.whiteSpace = 'pre-wrap';   // <-- CORRIGIDO: CSS para quebrar linha
+                row.insertCell().textContent = item.category || '-';
+                row.insertCell().textContent = item.brand || '-';
+                row.insertCell().textContent = item.name || '-';
+                const notesCell = row.insertCell();
+                notesCell.textContent = item.notes || '-'; // <-- CORRIGIDO: usa textContent
+                notesCell.style.whiteSpace = 'pre-wrap';   // <-- CORRIGIDO: CSS para quebrar linha
                 const ratingCell = row.insertCell(); 
                 const displayStarsContainer = document.createElement('div');
                 displayStarsContainer.classList.add('star-rating-display');
@@ -818,6 +831,32 @@ function updateAutocompleteLists() {
                 actionToConfirm = null;
             }
         });
+    }
+
+    /**
+     * Exibe uma mensagem simples em modal, usando o modal de confirmação com apenas o botão OK.
+     * @param {string} message - Mensagem a ser exibida.
+     * @param {boolean} positive - Se verdadeiro, aplica estilo de ação positiva ao botão.
+     */
+    function showInfoModal(message, positive = false) {
+        if (!confirmationModal || !modalMessage || !modalConfirmBtn) {
+            alert(message);
+            return;
+        }
+        const originalText = modalConfirmBtn.textContent;
+        const hadPositive = modalConfirmBtn.classList.contains('positive-action');
+        modalMessage.textContent = message;
+        modalConfirmBtn.textContent = 'OK';
+        modalConfirmBtn.classList.toggle('positive-action', positive);
+        if (modalCancelBtn) modalCancelBtn.style.display = 'none';
+        actionToConfirm = null;
+        confirmationModal.classList.add('show');
+        const cleanup = () => {
+            modalConfirmBtn.textContent = originalText;
+            modalConfirmBtn.classList.toggle('positive-action', hadPositive);
+            if (modalCancelBtn) modalCancelBtn.style.display = '';
+        };
+        modalConfirmBtn.addEventListener('click', cleanup, { once: true });
     }
 
     // ---------------------------------------------------------------------------
