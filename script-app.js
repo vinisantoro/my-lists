@@ -83,6 +83,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const importFileInput = document.getElementById('import-file');
     const deleteCategoryButton = document.getElementById('delete-category');
     const shareListButton = document.getElementById('share-list');
+    const shareModal = document.getElementById('share-modal');
+    const shareForm = document.getElementById('share-form');
+    const shareEmailInput = document.getElementById('share-email');
+    const shareRecordingCheckbox = document.getElementById('share-recording');
+    const shareCancelBtn = document.getElementById('share-cancel-btn');
     const confirmationModal = document.getElementById('confirmation-modal');
     const modalMessage = document.getElementById('modal-message');
     const modalConfirmBtn = document.getElementById('modal-confirm-btn');
@@ -1009,12 +1014,34 @@ function updateAutocompleteLists() {
     }
 
     if (shareListButton) {
-        shareListButton.addEventListener('click', async () => {
+        shareListButton.addEventListener('click', () => {
             if (!currentUser || !userProfile.isPremium) { showInfoModal('Função disponível apenas para usuários premium.'); return; }
-            const email = prompt('Digite o email para compartilhar a lista:');
+            if (shareModal && shareEmailInput && shareRecordingCheckbox) {
+                shareEmailInput.value = '';
+                shareRecordingCheckbox.checked = false;
+                shareModal.classList.add('show');
+            }
+        });
+    }
+
+    if (shareCancelBtn && shareModal) {
+        shareCancelBtn.addEventListener('click', () => {
+            shareModal.classList.remove('show');
+        });
+    }
+
+    if (shareForm && shareModal) {
+        shareForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUser || !userProfile.isPremium) { showInfoModal('Função disponível apenas para usuários premium.'); return; }
+            const email = shareEmailInput.value.trim();
             if (!email) return;
-            const permission = confirm('Permitir edição para o usuário se ele for Premium? Clique OK para permitir.') ? 'write' : 'read';
+            const permission = shareRecordingCheckbox.checked ? 'write' : 'read';
             await shareListWithEmail(email, permission);
+            shareModal.classList.remove('show');
+        });
+        shareModal.addEventListener('click', (e) => {
+            if (e.target === shareModal) shareModal.classList.remove('show');
         });
     }
 
