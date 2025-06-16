@@ -1541,6 +1541,50 @@ body.dark-mode #items-table tbody tr:nth-child(even) {
     opacity: 0.85;
 }
 
+/* Estilos para a tabela de listas */
+#lists-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-size: 0.9em;
+}
+
+#lists-table th,
+#lists-table td {
+    border: 1px solid var(--border-color);
+    padding: 10px 8px;
+    font-size: 0.85em;
+    text-align: left;
+    vertical-align: middle;
+}
+
+#lists-table thead th {
+    background-color: var(--text-color-dark);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.85em;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary-color);
+}
+
+#lists-table td button {
+    margin-right: 5px;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    color: #fff;
+    transition: opacity 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+#lists-table td button:hover {
+    opacity: 0.85;
+}
+
 .edit-btn {
     background-color: var(--warning-color);
     color: #333;

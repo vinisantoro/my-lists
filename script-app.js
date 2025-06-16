@@ -72,7 +72,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const hiddenRatingInput = document.getElementById('item-rating-hidden');
     const currentRatingDisplay = document.getElementById('current-rating-display');
 
-    // Tabela e Abas de Itens
+    // Seções e Tabelas
+    const listsSection = document.getElementById('lists-section');
+    const itemsSection = document.getElementById('items-section');
+    const listsTableBody = document.querySelector('#lists-table tbody');
+    const createListButton = document.getElementById('create-list');
+    const backToListsButton = document.getElementById('back-to-lists');
+    const listNameDisplay = document.getElementById('list-name');
+
     const itemsTableBody = document.querySelector('#items-table tbody');
     const categoryTabsContainer = document.getElementById('category-tabs-container');
 
@@ -96,6 +103,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // ---------------------------------------------------------------------------
     // ESTADO GLOBAL DA APLICAÇÃO
     // ---------------------------------------------------------------------------
+    let lists = [];                                 // Array para armazenar as listas
+    let activeListId = null;                        // ID da lista atualmente em edição
     let items = [];                                 // Array para armazenar os itens da lista
     let editingItemId = null;                       // ID do item atualmente em edição, ou null
     let actionToConfirm = null;                     // Função a ser executada após confirmação no modal
@@ -109,7 +118,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let unsubscribePrefsListener = () => {};        // Listener para atualizações da coleção 'userProfiles'
 
     // Chaves para o LocalStorage (versionadas para evitar conflitos com dados antigos)
-    const LOCAL_STORAGE_ITEMS_KEY = 'appItemsLocal_v3_freemium_final'; 
+    const LOCAL_STORAGE_LISTS_KEY = 'appListsLocal_v1';
+    const LOCAL_STORAGE_ITEMS_KEY = 'appItemsLocal_v3_freemium_final';
     const LOCAL_STORAGE_THEME_KEY = 'appThemeLocal_v3_freemium_final';
 
     // ---------------------------------------------------------------------------
@@ -161,6 +171,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    const lsListManager = {
+        loadLists: () => {
+            const stored = localStorage.getItem(LOCAL_STORAGE_LISTS_KEY);
+            try {
+                return stored ? JSON.parse(stored) : [];
+            } catch (e) {
+                console.error('Erro ao carregar listas do LocalStorage:', e);
+                localStorage.removeItem(LOCAL_STORAGE_LISTS_KEY);
+                return [];
+            }
+        },
+        saveLists: (currentLists) => {
+            try {
+                localStorage.setItem(LOCAL_STORAGE_LISTS_KEY, JSON.stringify(currentLists));
+            } catch (e) {
+                console.error('Erro ao salvar listas no LocalStorage:', e);
+            }
+        }
+    };
+
     /**
      * Gerenciador de dados para Firebase Firestore (modo premium).
      */
@@ -199,7 +229,50 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    const fbListManager = {
+        loadLists: async (userId) => {
+            try {
+                const snapshot = await db.collection('lists')
+                                     .where('ownerId', '==', userId)
+                                     .orderBy('createdAt', 'desc')
+                                     .get();
+                return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            } catch (e) {
+                console.error('Erro ao carregar listas do Firestore:', e);
+                return [];
+            }
+        },
+        addList: async (userId, name) => {
+            const data = {
+                ownerId: userId,
+                name,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            const docRef = await db.collection('lists').add(data);
+            return { id: docRef.id, ...data };
+        },
+        updateList: async (listId, data) => {
+            await db.collection('lists').doc(listId).update({
+                ...data,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        },
+        deleteList: async (listId) => {
+            await db.collection('lists').doc(listId).delete();
+            const itemsSnap = await db.collection('items').where('listId', '==', listId).get();
+            const batch = db.batch();
+            itemsSnap.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+            const sharesSnap = await db.collection('sharedLists').where('listId', '==', listId).get();
+            const batch2 = db.batch();
+            sharesSnap.forEach(doc => batch2.delete(doc.ref));
+            await batch2.commit();
+        }
+    };
+
     let activeDataManager = lsDataManager; // Padrão inicial para modo LocalStorage
+    let activeListManager = lsListManager;
 
     // ---------------------------------------------------------------------------
     // FUNÇÕES UTILITÁRIAS
@@ -355,6 +428,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        if(createListButton) createListButton.style.display = 'inline-block';
+        if(backToListsButton) backToListsButton.style.display = 'none';
+
         if(modeIndicator) {
             if (currentUser && userProfile.isPremium) modeIndicator.textContent = 'Premium Cloud';
             else if (currentUser && !userProfile.isPremium) modeIndicator.textContent = 'Gratuito (Online)';
@@ -400,6 +476,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     applyTheme(userProfile.theme || 'light'); // Aplica tema do perfil ou padrão
                     updateUIVisibility(true);   // Mostra o conteúdo do app
                     updateUserSpecificUI();     // Atualiza UI específica do usuário
+                    await loadAndRenderLists();
                     await loadAndRenderData();  // Carrega e renderiza os dados do modo correto
                 }, 
                 async (error) => { // Callback de erro para o listener do perfil
@@ -411,6 +488,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     applyTheme(localStorage.getItem(LOCAL_STORAGE_THEME_KEY) || 'light');
                     updateUIVisibility(true); 
                     updateUserSpecificUI();
+                    await loadAndRenderLists();
                     await loadAndRenderData();
                 });
         } else { // Usuário está deslogado
@@ -423,8 +501,10 @@ document.addEventListener('DOMContentLoaded', () => {
             updateUIVisibility(false); // Mostra a seção de autenticação
             updateUserSpecificUI();    // Atualiza UI para estado deslogado
             
-            items = []; // Limpa array de itens na memória
-            renderAppUI(); // Limpa a tabela e abas na UI
+            items = [];
+            lists = [];
+            renderLists();
+            renderAppUI();
         }
     });
     
@@ -441,6 +521,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateUserSpecificUI();   // Atualiza UI para modo convidado
             
             document.body.dataset.appInitialized = "true"; // Marca que o app foi "iniciado" neste modo
+            await loadAndRenderLists();
             await loadAndRenderData(); // Carrega dados do localStorage
         });
     }
@@ -506,6 +587,19 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Carrega os itens (do Firebase ou LocalStorage) e chama a renderização da UI.
      */
+    async function loadAndRenderLists() {
+        if (modoOperacao === 'firebase' && currentUser) {
+            lists = await fbListManager.loadLists(currentUser.uid);
+        } else {
+            lists = lsListManager.loadLists();
+        }
+        if (lists.length > 0 && !activeListId) activeListId = lists[0].id;
+        renderLists();
+        if (listsSection) listsSection.style.display = 'block';
+        if (itemsSection) itemsSection.style.display = 'none';
+        if (backToListsButton) backToListsButton.style.display = 'none';
+    }
+
     async function loadAndRenderData() {
         unsubscribeItemsListener(); // Limpa listener de itens anterior sempre
 
@@ -513,6 +607,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Configura o listener em tempo real para itens do Firebase
             unsubscribeItemsListener = db.collection('items')
                 .where('userId', '==', currentUser.uid)
+                .where('listId', '==', activeListId)
                 .orderBy('createdAt', 'desc')
                 .onSnapshot(snapshot => {
                     items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -523,7 +618,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     renderAppUI();
                 });
         } else { // Modo LocalStorage (ou deslogado, mas o app não deveria estar visível)
-            items = activeDataManager.loadItems(); // Carrega do localStorage
+            items = activeDataManager.loadItems().filter(it => it.listId === activeListId);
             renderAppUI();
         }
     }
@@ -555,13 +650,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (itemForm) {
         itemForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const newItemData = { 
-                category: categoryInput.value.trim(), 
+            const newItemData = {
+                category: categoryInput.value.trim(),
                 brand: brandInput.value.trim(),
-                name: itemNameInput.value.trim(), 
+                name: itemNameInput.value.trim(),
                 notes: itemNotesInput.value.trim(),
                 rating: parseFloat(hiddenRatingInput.value) || 0,
-                createdAt: new Date()
+                createdAt: new Date(),
+                listId: activeListId
             };
 
             if (!newItemData.name || !newItemData.category || !newItemData.brand) {
@@ -678,7 +774,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function shareListWithEmail(email, permission) {
         if (!currentUser || !userProfile || !userProfile.isPremium) return;
         try {
-            await db.collection('sharedLists').add({ ownerId: currentUser.uid, invitedEmail: email, permission });
+            await db.collection('sharedLists').add({ ownerId: currentUser.uid, listId: activeListId, invitedEmail: email, permission });
             showInfoModal('Lista compartilhada com sucesso!', true);
         } catch (e) {
             console.error('Erro ao compartilhar lista:', e);
@@ -846,6 +942,78 @@ function updateAutocompleteLists() {
             }
         });
         updateCategoryControls();
+    }
+
+    function renderLists() {
+        if (!listsTableBody) return;
+        listsTableBody.innerHTML = '';
+        if (lists.length === 0) {
+            listsTableBody.innerHTML = '<tr><td colspan="5" class="empty-message">Nenhuma lista encontrada.</td></tr>';
+            return;
+        }
+        lists.forEach(list => {
+            const row = listsTableBody.insertRow();
+            row.dataset.id = list.id;
+            row.insertCell().textContent = list.name || '';
+            row.insertCell().textContent = formatDate(list.createdAt);
+            row.insertCell().textContent = formatDate(list.updatedAt);
+            row.insertCell().textContent = (currentUser && list.ownerId === currentUser.uid) ? 'Você' : (list.ownerEmail || '');
+            const actionsCell = row.insertCell();
+            const editBtn = document.createElement('button');
+            editBtn.className = 'edit-btn';
+            editBtn.innerHTML = '<i class="fas fa-edit"></i> Editar';
+            editBtn.addEventListener('click', () => openList(list.id));
+            actionsCell.appendChild(editBtn);
+            const shareBtn = document.createElement('button');
+            shareBtn.innerHTML = '<i class="fas fa-share-alt"></i>';
+            shareBtn.addEventListener('click', () => { activeListId = list.id; shareModal.classList.add('show'); });
+            actionsCell.appendChild(shareBtn);
+            const delBtn = document.createElement('button');
+            delBtn.className = 'delete-btn';
+            delBtn.innerHTML = '<i class="fas fa-trash"></i>';
+            delBtn.addEventListener('click', () => confirmDeleteList(list.id));
+            actionsCell.appendChild(delBtn);
+        });
+    }
+
+    function openList(id) {
+        activeListId = id;
+        if (listNameDisplay) {
+            const l = lists.find(li => li.id === id);
+            if (l) listNameDisplay.textContent = l.name;
+        }
+        if (listsSection) listsSection.style.display = 'none';
+        if (itemsSection) itemsSection.style.display = 'block';
+        if (backToListsButton) backToListsButton.style.display = 'inline-block';
+        loadAndRenderData();
+    }
+
+    function backToListsView() {
+        if (itemsSection) itemsSection.style.display = 'none';
+        if (listsSection) listsSection.style.display = 'block';
+        if (backToListsButton) backToListsButton.style.display = 'none';
+    }
+
+    function confirmDeleteList(id) {
+        const l = lists.find(li => li.id === id);
+        showConfirmationModal(`Excluir a lista "${l ? l.name : ''}" e todos os itens?`, async () => {
+            if (modoOperacao === 'firebase' && currentUser) {
+                await fbListManager.deleteList(id);
+            } else {
+                lists = lists.filter(li => li.id !== id);
+                lsListManager.saveLists(lists);
+                items = items.filter(it => it.listId !== id);
+                lsDataManager.saveItems(items);
+            }
+            if (activeListId === id) { activeListId = lists.length ? lists[0].id : null; }
+            renderLists();
+        }, true);
+    }
+
+    function formatDate(ts) {
+        if (!ts) return '';
+        const d = ts.toDate ? ts.toDate() : (ts instanceof Date ? ts : new Date(ts));
+        return d.toLocaleDateString();
     }
 
     // ---------------------------------------------------------------------------
@@ -1021,6 +1189,43 @@ function updateAutocompleteLists() {
                 shareRecordingCheckbox.checked = false;
                 shareModal.classList.add('show');
             }
+        });
+    }
+
+    if (backToListsButton) {
+        backToListsButton.addEventListener('click', () => {
+            backToListsView();
+        });
+    }
+
+    if (createListButton) {
+        createListButton.addEventListener('click', async () => {
+            const name = prompt('Nome da nova lista:');
+            if (!name) return;
+            if (modoOperacao === 'firebase' && currentUser) {
+                const newList = await fbListManager.addList(currentUser.uid, name);
+                lists.unshift(newList);
+            } else {
+                const newList = { id: generateId(), name, createdAt: new Date(), updatedAt: new Date(), ownerId: null };
+                lists.unshift(newList);
+                lsListManager.saveLists(lists);
+            }
+            renderLists();
+        });
+    }
+
+    if (listNameDisplay) {
+        listNameDisplay.addEventListener('blur', async () => {
+            const newName = listNameDisplay.textContent.trim();
+            const list = lists.find(l => l.id === activeListId);
+            if (!list || !newName) return;
+            list.name = newName;
+            if (modoOperacao === 'firebase' && currentUser) {
+                await fbListManager.updateList(activeListId, { name: newName });
+            } else {
+                lsListManager.saveLists(lists);
+            }
+            renderLists();
         });
     }
 
