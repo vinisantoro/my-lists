@@ -560,8 +560,8 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             if (!newItemData.name || !newItemData.category || !newItemData.brand) {
-                alert('Por favor, preencha Categoria, Marca/Modelo e Nome do Produto.'); 
-                return; 
+                showInfoModal('Por favor, preencha Categoria, Marca/Modelo e Nome do Produto.');
+                return;
             }
             
             try {
@@ -582,9 +582,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(currentRatingDisplay) currentRatingDisplay.textContent = '0.0';
                 if(formStarRatingContainer) createStars(formStarRatingContainer, 0, true, hiddenRatingInput, currentRatingDisplay);
                 if(categoryInput) categoryInput.focus();
-            } catch (error) { 
-                console.error("Erro ao adicionar item:", error); 
-                alert("Erro ao adicionar item. Tente novamente."); 
+            } catch (error) {
+                console.error("Erro ao adicionar item:", error);
+                showInfoModal('Erro ao adicionar item. Tente novamente.');
             }
         });
     }
@@ -649,9 +649,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 renderAppUI(); // Re-renderiza para LocalStorage
             }
-        } catch (error) { 
-            console.error("Erro ao excluir item:", error); 
-            alert("Erro ao excluir item."); 
+        } catch (error) {
+            console.error("Erro ao excluir item:", error);
+            showInfoModal('Erro ao excluir item.');
         }
     }
 
@@ -910,8 +910,8 @@ function updateAutocompleteLists() {
     // FUNCIONALIDADE DE IMPORTAR/EXPORTAR DADOS
     // ---------------------------------------------------------------------------
     if (exportButton) {
-        exportButton.addEventListener('click', () => { 
-            if (items.length === 0) { alert('Não há dados para exportar.'); return; }
+        exportButton.addEventListener('click', () => {
+            if (items.length === 0) { showInfoModal('Não há dados para exportar.'); return; }
             let itemsToExport = JSON.parse(JSON.stringify(items)); // Cria cópia profunda
             
             if (modoOperacao === 'firebase') { 
@@ -938,7 +938,7 @@ function updateAutocompleteLists() {
         importFileInput.addEventListener('change', async (event) => {
             const file = event.target.files[0]; 
             if (!file) return;
-            if (file.type !== "application/json") { alert("Arquivo JSON inválido."); importFileInput.value = ""; return; }
+            if (file.type !== "application/json") { showInfoModal('Arquivo JSON inválido.'); importFileInput.value = ""; return; }
             
             const reader = new FileReader();
             reader.onload = async (e) => {
@@ -954,8 +954,8 @@ function updateAutocompleteLists() {
                         // if (typeof importedPayload.appMode === 'string') importedAppMode = importedPayload.appMode;
                     } else if (Array.isArray(importedPayload)) { // Formato antigo, só array de itens
                         importedItemsList = importedPayload;
-                    } else { 
-                        alert('Formato do arquivo JSON inválido.'); importFileInput.value = ""; return; 
+                    } else {
+                        showInfoModal('Formato do arquivo JSON inválido.'); importFileInput.value = ""; return;
                     }
 
                     if (Array.isArray(importedItemsList) && 
@@ -982,15 +982,15 @@ function updateAutocompleteLists() {
                                 lsDataManager.saveItems(items);
                                 renderAppUI(); // Atualiza UI para LocalStorage
                             }
-                            alert('Dados importados e adicionados com sucesso!'); 
+                            showInfoModal('Dados importados e adicionados com sucesso!', true);
                             activeCategory = 'all'; // Volta para a aba "Todos"
                             // renderAppUI(); // Já chamado ou será pelo onSnapshot
                         }, true); // true para isPositiveAction (botão verde no modal)
-                    } else { 
-                        alert('Os itens no arquivo JSON não estão no formato esperado ou contêm dados inválidos.');
+                    } else {
+                        showInfoModal('Os itens no arquivo JSON não estão no formato esperado ou contêm dados inválidos.');
                     }
-                } catch (error) { 
-                    alert('Erro ao processar o arquivo JSON: ' + error.message); 
+                } catch (error) {
+                    showInfoModal('Erro ao processar o arquivo JSON: ' + error.message);
                 } finally { 
                     importFileInput.value = ""; // Limpa o input de arquivo
                 }

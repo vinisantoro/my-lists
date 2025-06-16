@@ -138,9 +138,6 @@
                 accept=".json"
                 style="display: none"
               />
-              <button id="delete-category" style="display: none">
-                <i class="fas fa-trash"></i> Excluir Categoria
-              </button>
               <button id="share-list" style="display: none">
                 <i class="fas fa-share-alt"></i> Compartilhar Lista
               </button>
@@ -210,9 +207,14 @@
           <div id="category-tabs-container" class="tabs"></div>
 
           <div class="list-container">
-            <h2 id="list-title">
-              <i class="fas fa-archive"></i> Itens Cadastrados
-            </h2>
+            <div class="list-header">
+              <h2 id="list-title">
+                <i class="fas fa-archive"></i> Itens Cadastrados
+              </h2>
+              <button id="delete-category" class="btn-delete-category" style="display: none">
+                <i class="fas fa-trash"></i> Excluir Categoria
+              </button>
+            </div>
             <div class="table-wrapper">
               <table id="items-table">
                 <thead>

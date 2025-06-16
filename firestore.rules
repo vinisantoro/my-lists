@@ -1,0 +1,32 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /items/{itemId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId
+        && request.resource.data.name is string
+        && request.resource.data.brand is string
+        && request.resource.data.category is string
+        && request.resource.data.rating is number
+        && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 200
+        && request.resource.data.brand.size() > 0 && request.resource.data.brand.size() <= 100
+        && request.resource.data.category.size() > 0 && request.resource.data.category.size() <= 50
+        && request.resource.data.rating >= 0 && request.resource.data.rating <= 5;
+    }
+
+    match /userPreferences/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    match /userProfiles/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /sharedLists/{shareId} {
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.ownerId
+        && request.resource.data.invitedEmail is string
+        && request.resource.data.permission in ['read', 'write'];
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.ownerId;
+    }
+  }
+}
