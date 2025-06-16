@@ -454,10 +454,8 @@ body.dark-mode .guest-mode-option .btn-secondary:hover {
     margin-right: 10px;
 }
 
-.features-section h2,
-.cta-section h2,
-.plans-section h2,
-.page-header h1 {
+
+.section-title {
     font-size: 2.2rem;
     margin-bottom: 1rem;
     color: var(--text-color);
@@ -470,10 +468,7 @@ body.dark-mode .guest-mode-option .btn-secondary:hover {
     margin-bottom: 2rem;
 }
 
-body.dark-mode .features-section h2,
-body.dark-mode .cta-section h2,
-body.dark-mode .plans-section h2,
-body.dark-mode .page-header h1 {
+body.dark-mode .section-title {
     color: var(--text-color-dark);
 }
 
@@ -1662,24 +1657,6 @@ body.light-mode .star-rating-display .star.filled {
     border-bottom: 2px solid var(--border-color);
 }
 
-.tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid var(--border-color);
-}
-
-.tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid var(--border-color);
-}
-
 body.light-mode .tabs {
     border-bottom: 2px solid var(--border-color);
 }
@@ -1694,35 +1671,9 @@ body.dark-mode .tabs {
     cursor: pointer;
     font-size: 0.95em;
     font-weight: 500;
-    border: 1px solid var(--border-color);
-    background-color: var(--text-color-dark);
-    color: var(--text-secondary-color);
-    transition: background-color 0.2s, color 0.2s, box-shadow 0.2s, border-color 0.2s;
-}
-
-.tab-button {
-    padding: 8px 15px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.95em;
-    font-weight: 500;
     transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     border: 1px solid var(--border-color);
     background-color: var(--text-color-dark);
-    /* Fundo para tema claro */
-    color: var(--text-secondary-color);
-}
-
-.tab-button {
-    padding: 8px 15px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.95em;
-    font-weight: 500;
-    transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-    border: 1px solid var(--border-color);
-    background-color: var(--text-color-dark);
-    /* Fundo para tema claro */
     color: var(--text-secondary-color);
 }
 
@@ -1743,16 +1694,6 @@ body.dark-mode .tab-button {
     color: var(--primary-color);
 }
 
-.tab-button:hover {
-    background-color: #dce3e8;
-    color: var(--primary-color);
-}
-
-.tab-button:hover {
-    background-color: #dce3e8;
-    color: var(--primary-color);
-}
-
 body.light-mode .tab-button:hover {
     background-color: #dce3e8;
     color: var(--primary-color);
@@ -1766,22 +1707,6 @@ body.dark-mode .tab-button:hover {
 .tab-button.active {
     background-color: var(--primary-color);
     color: #fff;
-    border-color: var(--primary-color);
-    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
-}
-
-.tab-button.active {
-    background-color: var(--primary-color);
-    color: #fff;
-    /* Texto branco */
-    border-color: var(--primary-color);
-    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
-}
-
-.tab-button.active {
-    background-color: var(--primary-color);
-    color: #fff;
-    /* Texto branco */
     border-color: var(--primary-color);
     box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
 }
