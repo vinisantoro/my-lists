@@ -607,11 +607,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            editingItemId = null; // Define como null antes de atualizar para evitar re-renderização em modo edição
-            alert('Categoria, Marca/Modelo e Nome do Produto não podem ficar vazios.'); return;
-        }
-
-        try {
             if (modoOperacao === 'firebase' && currentUser) {
                 await activeDataManager.updateItem(itemId, updatedData); // onSnapshot do Firebase cuida da UI
                 editingItemId = null;
@@ -628,9 +623,6 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Erro ao atualizar item:", error);
             showInfoModal("Erro ao atualizar item.");
             // renderItems(); // Não é estritamente necessário se renderAppUI é chamado ou onSnapshot está ativo
-        } catch (error) {
-            console.error("Erro ao atualizar item:", error);
-            alert("Erro ao atualizar item.");
         }
     }
     
