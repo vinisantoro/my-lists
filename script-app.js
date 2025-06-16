@@ -550,6 +550,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 name: itemNameInput.value.trim(), 
                 notes: itemNotesInput.value.trim(),
                 rating: parseFloat(hiddenRatingInput.value) || 0,
+                createdAt: new Date()
             };
 
             if (!newItemData.name || !newItemData.category || !newItemData.brand) {
@@ -559,7 +560,11 @@ document.addEventListener('DOMContentLoaded', () => {
             
             try {
                 if (modoOperacao === 'firebase' && currentUser) {
-                    await activeDataManager.addItem(currentUser.uid, newItemData); 
+                    const dataForFirebase = {
+                    ...newItemData,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp() // O timestamp do servidor prevalecerá
+                    };
+                    await activeDataManager.addItem(currentUser.uid, dataForFirebase); 
                     // O listener onSnapshot do Firebase atualizará a UI automaticamente
                 } else { // Modo LocalStorage
                     activeDataManager.addItem(newItemData, items); // 'items' é modificado por referência
@@ -651,14 +656,30 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Atualiza as listas de datalist para autocomplete de categoria e marca/modelo.
      */
-    function updateAutocompleteLists() { 
-        if (!categoryList || !brandList) return;
-        // Usa a 'items' global, que é atualizada pelo modo de operação correto
-        const categories = [...new Set(items.map(item => item.category.trim()).filter(Boolean))].sort();
-        const brands = [...new Set(items.map(item => item.brand.trim()).filter(Boolean))].sort();
-        categoryList.innerHTML = categories.map(cat => `<option value="${cat}"></option>`).join('');
-        brandList.innerHTML = brands.map(br => `<option value="${br}"></option>`).join('');
-    }
+function updateAutocompleteLists() { 
+    if (!categoryList || !brandList) return;
+    
+    // Limpa as listas para evitar duplicatas
+    categoryList.innerHTML = '';
+    brandList.innerHTML = '';
+
+    const categories = [...new Set(items.map(item => item.category.trim()).filter(Boolean))].sort();
+    const brands = [...new Set(items.map(item => item.brand.trim()).filter(Boolean))].sort();
+    
+    // Adiciona opções de categoria de forma segura
+    categories.forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat;
+        categoryList.appendChild(option);
+    });
+
+    // Adiciona opções de marca de forma segura
+    brands.forEach(br => {
+        const option = document.createElement('option');
+        option.value = br;
+        brandList.appendChild(option);
+    });
+}
 
     /**
      * Renderiza as abas de filtro por categoria.
@@ -700,9 +721,30 @@ document.addEventListener('DOMContentLoaded', () => {
             row.dataset.id = item.id; 
             if (editingItemId === item.id) { 
                 // Modo de Edição
-                row.insertCell().innerHTML = `<input type="text" class="editable-input" value="${item.brand || ''}" data-field="brand" list="brand-list">`;
-                row.insertCell().innerHTML = `<input type="text" class="editable-input" value="${item.name || ''}" data-field="name">`;
-                row.insertCell().innerHTML = `<textarea class="editable-textarea" data-field="notes">${item.notes || ''}</textarea>`;
+                const brandCell = row.insertCell();
+                const brandInput = document.createElement('input');
+                brandInput.type = 'text';
+                brandInput.className = 'editable-input';
+                brandInput.value = item.brand || ''; // Use .value
+                brandInput.dataset.field = 'brand';
+                brandInput.setAttribute('list', 'brand-list');
+                brandCell.appendChild(brandInput);
+
+                const nameCell = row.insertCell();
+                const nameInput = document.createElement('input');
+                nameInput.type = 'text';
+                nameInput.className = 'editable-input';
+                nameInput.value = item.name || ''; // Use .value
+                nameInput.dataset.field = 'name';
+                nameCell.appendChild(nameInput);
+                
+                const notesCell = row.insertCell();
+                const notesTextarea = document.createElement('textarea');
+                notesTextarea.className = 'editable-textarea';
+                notesTextarea.value = item.notes || ''; // Use .value
+                notesTextarea.dataset.field = 'notes';
+                notesCell.appendChild(notesTextarea);
+
                 const ratingEditCell = row.insertCell(); 
                 const editStarContainer = document.createElement('div');
                 editStarContainer.classList.add('star-rating-input', 'inline-edit-stars');
@@ -720,10 +762,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 actionsCell.querySelector('.cancel-btn').addEventListener('click', () => cancelEdit());
             } else { 
                 // Modo de Visualização
-                row.insertCell().textContent = item.brand || '-'; 
-                row.insertCell().textContent = item.name || '-';
-                const notesCell = row.insertCell(); 
-                notesCell.innerHTML = (item.notes || '-').replace(/\n/g, '<br>');
+                 row.insertCell().textContent = item.brand || '-'; 
+    row.insertCell().textContent = item.name || '-';
+    const notesCell = row.insertCell(); 
+    notesCell.textContent = item.notes || '-'; // <-- CORRIGIDO: usa textContent
+    notesCell.style.whiteSpace = 'pre-wrap';   // <-- CORRIGIDO: CSS para quebrar linha
                 const ratingCell = row.insertCell(); 
                 const displayStarsContainer = document.createElement('div');
                 displayStarsContainer.classList.add('star-rating-display');
