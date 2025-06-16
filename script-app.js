@@ -610,12 +610,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (modoOperacao === 'firebase' && currentUser) {
                 await activeDataManager.updateItem(itemId, updatedData); // onSnapshot do Firebase cuida da UI
                 editingItemId = null;
-                alert('Alterações salvas com sucesso!');
+                renderItems();
             } else { // Modo LocalStorage
                 editingItemId = null;
                 activeDataManager.updateItem(itemId, updatedData, items);
-                renderAppUI(); // Re-renderiza para LocalStorage
-                alert('Alterações salvas com sucesso!');
+                renderAppUI();
             }
             showInfoModal('Alterações salvas com sucesso!', true);
             // renderItems(); // Não é estritamente necessário se renderAppUI é chamado ou onSnapshot está ativo
