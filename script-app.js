@@ -837,7 +837,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 renderAppUI(); // Re-renderiza para LocalStorage
             }
-            showInfoModal('Item excluído com sucesso!', false, true);
+            showToast('Item excluído com sucesso!', true);
         } catch (error) {
             console.error("Erro ao excluir item:", error);
             const msg = /insufficient permissions/i.test(error.message)
@@ -1187,15 +1187,14 @@ function updateAutocompleteLists() {
                     activeListId = lists.length ? lists[0].id : null;
                 }
                 renderLists();
-                showInfoModal('Lista excluída com sucesso!', false, true);
+                showToast('Lista excluída com sucesso!', true);
             } catch (error) {
                 console.error('Erro ao excluir lista:', error);
-                const msg = /insufficient permissions/i.test(error.message)
-                    ? 'Permissões insuficientes para excluir a lista.'
-                    : 'Erro ao excluir lista.';
-                showInfoModal(msg, false, true);
+                showInfoModal('Erro ao excluir lista.');
             }
-        }, false);
+            renderLists();
+            showToast('Lista excluída com sucesso!', true);
+        });
     }
 
     function formatDate(ts) {
