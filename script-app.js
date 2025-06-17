@@ -255,11 +255,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     .get();
                 for (const shareDoc of sharedSnap.docs) {
                     const data = shareDoc.data();
-                    const listDoc = await db.collection('lists').doc(data.listId).get();
+                    const listRef = db.collection('lists').doc(data.listId);
+                    const listDoc = await listRef.get();
                     if (listDoc.exists) {
+                        const listData = listDoc.data();
+                        if (data.permission === 'write' && (!listData.writerEmails || !listData.writerEmails.includes(data.invitedEmail))) {
+                            try {
+                                await listRef.update({
+                                    writerEmails: firebase.firestore.FieldValue.arrayUnion(data.invitedEmail)
+                                });
+                                listData.writerEmails = (listData.writerEmails || []).concat([data.invitedEmail]);
+                            } catch (e) {
+                                console.error('Erro ao sincronizar permissao de escrita:', e);
+                            }
+                        }
                         lists.push({
                             id: listDoc.id,
-                            ...listDoc.data(),
+                            ...listData,
                             permission: data.permission,
                             canWrite: userProfile.isPremium && data.permission === 'write'
                         });
