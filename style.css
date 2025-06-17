@@ -1558,6 +1558,7 @@ body.dark-mode #items-table tbody tr:nth-child(even) {
     vertical-align: middle;
 }
 
+
 body.dark-mode #lists-table th,
 body.dark-mode #lists-table td {
     border: 1px solid var(--border-color-dark);

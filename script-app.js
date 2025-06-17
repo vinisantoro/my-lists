@@ -481,9 +481,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     modoOperacao = userProfile.isPremium ? 'firebase' : 'localStorage';
                     activeDataManager = userProfile.isPremium ? fbDataManager : lsDataManager;
-
                     applyTheme(userProfile.theme || 'light');
-
                     if (!profileInitialized || modeChanged) {
                         updateUIVisibility(true);
                         updateUserSpecificUI();
@@ -611,6 +609,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (lists.length > 0 && !activeListId) activeListId = lists[0].id;
         renderLists();
+
         if (showListsView) {
             if (listsSection) listsSection.style.display = 'block';
             if (itemsSection) itemsSection.style.display = 'none';
