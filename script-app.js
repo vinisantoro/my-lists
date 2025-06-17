@@ -667,9 +667,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (modoOperacao === 'firebase' && currentUser) {
             // Configura o listener em tempo real para itens do Firebase
+            // Deve filtrar pelo dono da lista e pelo ID da lista atual
             unsubscribeItemsListener = db.collection('items')
-                .where('userId', '==', currentUser.uid)
-                .where('userId', '==', activeListOwnerId)                
+                .where('userId', '==', activeListOwnerId)
+                .where('listId', '==', activeListId)
                 .orderBy('createdAt', 'desc')
                 .onSnapshot(snapshot => {
                     items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -828,12 +829,16 @@ document.addEventListener('DOMContentLoaded', () => {
     async function deleteAllItemsOfCategory(category) {
         if (modoOperacao === 'firebase' && currentUser) {
             if (!activeListCanWrite) { showInfoModal('Acesso somente leitura.'); return; }
-            const snapshot = await db.collection('items').where('userId', '==', activeListOwnerId).where('category', '==', category).get();
+            const snapshot = await db.collection('items')
+                .where('userId', '==', activeListOwnerId)
+                .where('listId', '==', activeListId)
+                .where('category', '==', category)
+                .get();
             const batch = db.batch();
             snapshot.forEach(doc => batch.delete(doc.ref));
             await batch.commit();
         } else {
-            items = items.filter(it => it.category !== category);
+            items = items.filter(it => !(it.category === category && it.listId === activeListId));
             lsDataManager.saveItems(items);
             renderAppUI();
         }
