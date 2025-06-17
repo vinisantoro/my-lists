@@ -2207,6 +2207,18 @@ body.dark-mode .switch input:checked+.slider-toggle {
     z-index: 1100;
 }
 
+.toast-message.toast-danger {
+    background-color: #f8d7da;
+    color: var(--danger-color);
+    border-color: var(--danger-color);
+}
+
+body.dark-mode .toast-message.toast-danger {
+    background-color: #5f1b1b;
+    color: var(--danger-color-dark);
+    border-color: var(--danger-color-dark);
+}
+
 .toast-message.show {
     opacity: 1;
     transform: translateY(0);

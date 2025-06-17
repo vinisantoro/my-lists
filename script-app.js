@@ -764,6 +764,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(currentRatingDisplay) currentRatingDisplay.textContent = '0.0';
                 if(formStarRatingContainer) createStars(formStarRatingContainer, 0, true, hiddenRatingInput, currentRatingDisplay);
                 if(categoryInput) categoryInput.focus();
+                showToast('Item adicionado com sucesso!');
             } catch (error) {
                 console.error("Erro ao adicionar item:", error);
                 showInfoModal('Erro ao adicionar item. Tente novamente.');
@@ -833,7 +834,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 renderAppUI(); // Re-renderiza para LocalStorage
             }
-            showInfoModal('Item excluído com sucesso!', false, true);
+            showToast('Item excluído com sucesso!', true);
         } catch (error) {
             console.error("Erro ao excluir item:", error);
             showInfoModal('Erro ao excluir item.');
@@ -1179,7 +1180,7 @@ function updateAutocompleteLists() {
                 activeListId = lists.length ? lists[0].id : null;
             }
             renderLists();
-            showInfoModal('Lista excluída com sucesso!', false, true);
+            showToast('Lista excluída com sucesso!', true);
         });
     }
 
@@ -1416,6 +1417,7 @@ function updateAutocompleteLists() {
             }
             renderLists();
             createListModal.classList.remove('show');
+            showToast('Lista adicionada com sucesso!');
         });
 
         createListModal.addEventListener('click', (e) => {
@@ -1423,9 +1425,9 @@ function updateAutocompleteLists() {
         });
     }
 
-    function showToast(message) {
+    function showToast(message, danger = false) {
         const toast = document.createElement('div');
-        toast.className = 'toast-message';
+        toast.className = 'toast-message' + (danger ? ' toast-danger' : '');
         toast.textContent = message;
         document.body.appendChild(toast);
         requestAnimationFrame(() => toast.classList.add('show'));
