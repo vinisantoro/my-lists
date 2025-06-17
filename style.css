@@ -1974,6 +1974,22 @@ body.dark-mode .modal-content {
     margin-bottom: 10px;
 }
 
+.modal-danger .modal-icon {
+    color: var(--danger-color);
+}
+
+body.dark-mode .modal-danger .modal-icon {
+    color: var(--danger-color-dark);
+}
+
+.modal-danger #modal-message {
+    color: var(--danger-color);
+}
+
+body.dark-mode .modal-danger #modal-message {
+    color: var(--danger-color-dark);
+}
+
 .modal-content button {
     padding: 10px 20px;
     border: none;
