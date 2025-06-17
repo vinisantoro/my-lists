@@ -2052,8 +2052,8 @@ body.dark-mode .btn-cancel:hover {
 }
 
 .premium-indicator {
-    background-color: #ffd700;
-    color: #8b6914;
+    background-color: #ffd700 !important;
+    color: #8b6914 !important;
 }
 
 body.dark-mode #mode-indicator {

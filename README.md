@@ -44,6 +44,8 @@ Este é um sistema web interativo projetado para ajudar usuários a catalogar e 
 
 - **Compartilhar por Email:** Usuários Premium podem compartilhar sua lista completa com outro email.
 - **Permissões Dinâmicas:** O convidado terá acesso somente leitura se for convidado sem ser Premium e poderá editar caso possua conta Premium.
+  - Usuários sem plano Premium continuam limitados a leitura das listas compartilhadas.
+  - Usuários Premium podem gravar em listas compartilhadas quando o proprietário define a permissão como `write`.
 
 Para habilitar o compartilhamento é necessário criar no Firestore a coleção `sharedLists` com documentos contendo `ownerId`, `invitedEmail` e `permission` (`read` ou `write`).
 As regras de segurança devem permitir leitura dos itens quando existir um registro nessa coleção vinculando o email do usuário logado ao `ownerId` da lista. Para escrita, verifique também se o usuário convidado possui `isPremium: true` em `userProfiles`.
@@ -65,7 +67,9 @@ As regras de segurança devem permitir leitura dos itens quando existir um regis
 ## Evolução do Projeto
 
 Este sistema evoluiu de uma versão inicial que utilizava o `localStorage` do navegador para armazenamento de dados para uma solução mais robusta e escalável, utilizando o Firebase para oferecer persistência na nuvem, autenticação segura e funcionalidades multiusuário.
+
 ## Melhorias Recentes
+
 - Geração de IDs agora utiliza `crypto.randomUUID()` quando disponível, aumentando a segurança.
 - Operações em modo localStorage evitam recarregar todo o conjunto de itens, reduzindo leituras.
 - Inclusão de botão para excluir todos os itens de uma categoria.

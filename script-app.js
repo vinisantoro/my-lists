@@ -114,6 +114,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // ---------------------------------------------------------------------------
     let lists = [];                                 // Array para armazenar as listas
     let activeListId = null;                        // ID da lista atualmente em edição
+    let activeListOwnerId = null;                   // ID do proprietário da lista ativa
+    let activeListCanWrite = true;                  // Permissão de escrita na lista ativa    
     let items = [];                                 // Array para armazenar os itens da lista
     let editingItemId = null;                       // ID do item atualmente em edição, ou null
     let actionToConfirm = null;                     // Função a ser executada após confirmação no modal
@@ -239,13 +241,35 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const fbListManager = {
-        loadLists: async (userId) => {
+        loadLists: async (user) => {
             try {
-                const snapshot = await db.collection('lists')
-                                     .where('ownerId', '==', userId)
+                const lists = [];
+                const ownSnap = await db.collection('lists')
+                                     .where('ownerId', '==', user.uid)
                                      .orderBy('createdAt', 'desc')
                                      .get();
-                return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                ownSnap.forEach(doc => lists.push({ id: doc.id, ...doc.data(), permission: 'owner', canWrite: true }));
+
+                const sharedSnap = await db.collection('sharedLists')
+                    .where('invitedEmail', '==', user.email)
+                    .get();
+                for (const shareDoc of sharedSnap.docs) {
+                    const data = shareDoc.data();
+                    const listDoc = await db.collection('lists').doc(data.listId).get();
+                    if (listDoc.exists) {
+                        lists.push({
+                            id: listDoc.id,
+                            ...listDoc.data(),
+                            permission: data.permission,
+                            canWrite: userProfile.isPremium && data.permission === 'write'
+                        });
+                    }
+                }
+                return lists.sort((a, b) => {
+                    const da = a.createdAt && a.createdAt.toDate ? a.createdAt.toDate() : a.createdAt;
+                    const dbt = b.createdAt && b.createdAt.toDate ? b.createdAt.toDate() : b.createdAt;
+                    return dbt - da;
+                });
             } catch (e) {
                 console.error('Erro ao carregar listas do Firestore:', e);
                 return [];
@@ -259,7 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
             const docRef = await db.collection('lists').add(data);
-            return { id: docRef.id, ...data };
+            return { id: docRef.id, ownerId: userId, name, createdAt: new Date(), updatedAt: new Date() };
         },
         updateList: async (listId, data) => {
             await db.collection('lists').doc(listId).update({
@@ -620,11 +644,15 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     async function loadAndRenderLists(showListsView = true) {
         if (modoOperacao === 'firebase' && currentUser) {
-            lists = await fbListManager.loadLists(currentUser.uid);
+            lists = await fbListManager.loadLists(currentUser);
         } else {
             lists = lsListManager.loadLists();
         }
-        if (lists.length > 0 && !activeListId) activeListId = lists[0].id;
+        if (lists.length > 0 && !activeListId) {
+            activeListId = lists[0].id;
+            activeListOwnerId = lists[0].ownerId || (currentUser ? currentUser.uid : null);
+            activeListCanWrite = lists[0].canWrite !== undefined ? lists[0].canWrite : true;
+        }
         renderLists();
 
         if (showListsView) {
@@ -641,7 +669,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Configura o listener em tempo real para itens do Firebase
             unsubscribeItemsListener = db.collection('items')
                 .where('userId', '==', currentUser.uid)
-                .where('listId', '==', activeListId)
+                .where('userId', '==', activeListOwnerId)                
                 .orderBy('createdAt', 'desc')
                 .onSnapshot(snapshot => {
                     items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -705,7 +733,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     ...newItemData,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp() // O timestamp do servidor prevalecerá
                     };
-                    await activeDataManager.addItem(currentUser.uid, dataForFirebase); 
+                    if (activeListCanWrite) {
+                        await activeDataManager.addItem(activeListOwnerId, dataForFirebase);
+                    } else {
+                        showInfoModal('Acesso somente leitura.');
+                        return;
+                    }
                     // O listener onSnapshot do Firebase atualizará a UI automaticamente
                 } else { // Modo LocalStorage
                 activeDataManager.addItem(newItemData, items); // 'items' modificado por referência
@@ -746,6 +779,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             if (modoOperacao === 'firebase' && currentUser) {
+                if (!activeListCanWrite) { showInfoModal('Acesso somente leitura.'); return; }
                 await activeDataManager.updateItem(itemId, updatedData); // onSnapshot do Firebase cuida da UI
                 editingItemId = null;
                 renderItems();
@@ -773,6 +807,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             if (modoOperacao === 'firebase' && currentUser) { 
+                if (!activeListCanWrite) { showInfoModal('Acesso somente leitura.'); return; }
                 await activeDataManager.deleteItem(itemId); // onSnapshot do Firebase cuida da UI
                 // A lógica de atualizar activeCategory se a categoria for removida pode ser feita no callback do onSnapshot
             } else { // Modo LocalStorage
@@ -792,7 +827,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function deleteAllItemsOfCategory(category) {
         if (modoOperacao === 'firebase' && currentUser) {
-            const snapshot = await db.collection('items').where('userId', '==', currentUser.uid).where('category', '==', category).get();
+            if (!activeListCanWrite) { showInfoModal('Acesso somente leitura.'); return; }
+            const snapshot = await db.collection('items').where('userId', '==', activeListOwnerId).where('category', '==', category).get();
             const batch = db.batch();
             snapshot.forEach(doc => batch.delete(doc.ref));
             await batch.commit();
@@ -838,10 +874,15 @@ document.addEventListener('DOMContentLoaded', () => {
     async function unshareUser(id) {
         await db.collection('sharedLists').doc(id).delete();
         loadSharedUsers();
+        showToast('Usuário removido do compartilhamento');
     }
 
     // Funções para iniciar e cancelar a edição inline de um item
-    function startEditItem(itemId) { editingItemId = itemId; renderItems(); }
+    function startEditItem(itemId) {
+        if (!activeListCanWrite) { showInfoModal('Acesso somente leitura.'); return; }
+        editingItemId = itemId;
+        renderItems();
+    }
     function cancelEdit() { editingItemId = null; renderItems(); }
 
     // ---------------------------------------------------------------------------
@@ -886,7 +927,8 @@ function updateAutocompleteLists() {
             }
         }
         if (shareListButton) {
-            shareListButton.style.display = (currentUser && userProfile.isPremium) ? 'inline-block' : 'none';
+            const canShare = currentUser && userProfile.isPremium && activeListOwnerId === currentUser.uid;
+            shareListButton.style.display = canShare ? 'inline-block' : 'none';
         }
     }
 
@@ -992,11 +1034,15 @@ function updateAutocompleteLists() {
                 createStars(displayStarsContainer, parseFloat(item.rating || 0), false);
                 ratingCell.appendChild(displayStarsContainer);
                 const actionsCell = row.insertCell();
-                actionsCell.innerHTML = `<button class="edit-btn" title="Editar"><i class="fas fa-edit"></i></button> <button class="delete-btn" title="Excluir"><i class="fas fa-trash-alt"></i></button>`;
-                actionsCell.querySelector('.edit-btn').addEventListener('click', () => startEditItem(item.id));
-                actionsCell.querySelector('.delete-btn').addEventListener('click', () => {
-                    showConfirmationModal(`Tem certeza que deseja excluir o item "${item.name || 'sem nome'}"?`, () => deleteItemAction(item.id)); 
-                });
+                if (activeListCanWrite) {
+                    actionsCell.innerHTML = `<button class="edit-btn" title="Editar"><i class="fas fa-edit"></i></button> <button class="delete-btn" title="Excluir"><i class="fas fa-trash-alt"></i></button>`;
+                    actionsCell.querySelector('.edit-btn').addEventListener('click', () => startEditItem(item.id));
+                    actionsCell.querySelector('.delete-btn').addEventListener('click', () => {
+                        showConfirmationModal(`Tem certeza que deseja excluir o item \"${item.name || 'sem nome'}\"?`, () => deleteItemAction(item.id));
+                    });
+                } else {
+                    actionsCell.textContent = '-';
+                }                
             }
         });
         updateCategoryControls();
@@ -1022,25 +1068,35 @@ function updateAutocompleteLists() {
             editBtn.innerHTML = '<i class="fas fa-edit"></i> Editar';
             editBtn.addEventListener('click', () => openList(list.id));
             actionsCell.appendChild(editBtn);
-            const shareBtn = document.createElement('button');
-            shareBtn.className = 'share-btn';
-            shareBtn.innerHTML = '<i class="fas fa-share-alt"></i>';
-            shareBtn.addEventListener('click', () => { activeListId = list.id; shareModal.classList.add('show'); });
-            actionsCell.appendChild(shareBtn);
-            const delBtn = document.createElement('button');
-            delBtn.className = 'delete-btn';
-            delBtn.innerHTML = '<i class="fas fa-trash"></i>';
-            delBtn.addEventListener('click', () => confirmDeleteList(list.id));
-            actionsCell.appendChild(delBtn);
+
+            if (currentUser && userProfile.isPremium && list.ownerId === currentUser.uid) {
+                const shareBtn = document.createElement('button');
+                shareBtn.className = 'share-btn';
+                shareBtn.innerHTML = '<i class="fas fa-share-alt"></i>';
+                shareBtn.addEventListener('click', () => { activeListId = list.id; shareModal.classList.add('show'); });
+                actionsCell.appendChild(shareBtn);
+            }
+
+            if (currentUser && list.ownerId === currentUser.uid) {
+                const delBtn = document.createElement('button');
+                delBtn.className = 'delete-btn';
+                delBtn.innerHTML = '<i class="fas fa-trash"></i>';
+                delBtn.addEventListener('click', () => confirmDeleteList(list.id));
+                actionsCell.appendChild(delBtn);
+            }
         });
     }
 
     function openList(id) {
+        const l = lists.find(li => li.id === id);
         activeListId = id;
-        if (listNameDisplay) {
-            const l = lists.find(li => li.id === id);
-            if (l) listNameDisplay.textContent = l.name;
+        activeListOwnerId = l ? (l.ownerId || (currentUser ? currentUser.uid : null)) : null;
+        activeListCanWrite = l ? (l.canWrite !== undefined ? l.canWrite : true) : true;
+        if (listNameDisplay && l) {
+            listNameDisplay.textContent = l.name;
         }
+        if (itemForm) itemForm.style.display = activeListCanWrite ? 'block' : 'none';
+        updateCategoryControls();        
         if (listsSection) listsSection.style.display = 'none';
         if (itemsSection) itemsSection.style.display = 'block';
         if (backToListsButton) backToListsButton.style.display = 'inline-block';
