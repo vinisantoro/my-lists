@@ -1093,7 +1093,19 @@ function updateAutocompleteLists() {
                 const shareBtn = document.createElement('button');
                 shareBtn.className = 'share-btn';
                 shareBtn.innerHTML = '<i class="fas fa-share-alt"></i>';
-                shareBtn.addEventListener('click', () => { activeListId = list.id; shareModal.classList.add('show'); });
+                shareBtn.addEventListener('click', () => {
+                    if (!currentUser || !userProfile.isPremium) {
+                        showInfoModal('Função disponível apenas para usuários premium.');
+                        return;
+                    }
+                    if (shareEmailInput && shareRecordingCheckbox) {
+                        shareEmailInput.value = '';
+                        shareRecordingCheckbox.checked = false;
+                    }
+                    activeListId = list.id;
+                    loadSharedUsers();
+                    shareModal.classList.add('show');
+                });
                 actionsCell.appendChild(shareBtn);
             }
 
