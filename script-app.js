@@ -764,6 +764,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(currentRatingDisplay) currentRatingDisplay.textContent = '0.0';
                 if(formStarRatingContainer) createStars(formStarRatingContainer, 0, true, hiddenRatingInput, currentRatingDisplay);
                 if(categoryInput) categoryInput.focus();
+                showToast('Item adicionado com sucesso!');
             } catch (error) {
                 console.error("Erro ao adicionar item:", error);
                 showInfoModal('Erro ao adicionar item. Tente novamente.');
@@ -820,7 +821,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!itemToDelete) return;
 
         try {
-            if (modoOperacao === 'firebase' && currentUser) { 
+            if (modoOperacao === 'firebase' && currentUser) {
                 if (!activeListCanWrite) { showInfoModal('Acesso somente leitura.'); return; }
                 await activeDataManager.deleteItem(itemId); // onSnapshot do Firebase cuida da UI
                 // A lógica de atualizar activeCategory se a categoria for removida pode ser feita no callback do onSnapshot
@@ -833,6 +834,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 renderAppUI(); // Re-renderiza para LocalStorage
             }
+            showToast('Item excluído com sucesso!', true);
         } catch (error) {
             console.error("Erro ao excluir item:", error);
             showInfoModal('Erro ao excluir item.');
@@ -1163,22 +1165,28 @@ function updateAutocompleteLists() {
     function confirmDeleteList(id) {
         const l = lists.find(li => li.id === id);
         showConfirmationModal(`Excluir a lista "${l ? l.name : ''}" e todos os itens?`, async () => {
-            if (modoOperacao === 'firebase' && currentUser) {
-                await fbListManager.deleteList(id);
-            } else {
-                items = items.filter(it => it.listId !== id);
-                lsDataManager.saveItems(items);
-            }
+            try {
+                if (modoOperacao === 'firebase' && currentUser) {
+                    await fbListManager.deleteList(id);
+                } else {
+                    items = items.filter(it => it.listId !== id);
+                    lsDataManager.saveItems(items);
+                }
 
-            // Remove a lista do array local em ambos os modos
-            lists = lists.filter(li => li.id !== id);
-            if (modoOperacao !== 'firebase') lsListManager.saveLists(lists);
+                // Remove a lista do array local em ambos os modos
+                lists = lists.filter(li => li.id !== id);
+                if (modoOperacao !== 'firebase') lsListManager.saveLists(lists);
 
-            if (activeListId === id) {
-                activeListId = lists.length ? lists[0].id : null;
+                if (activeListId === id) {
+                    activeListId = lists.length ? lists[0].id : null;
+                }
+                renderLists();
+                showToast('Lista excluída com sucesso!', true);
+            } catch (error) {
+                console.error('Erro ao excluir lista:', error);
+                showInfoModal('Erro ao excluir lista.');
             }
-            renderLists();
-        }, true);
+        });
     }
 
     function formatDate(ts) {
@@ -1232,25 +1240,31 @@ function updateAutocompleteLists() {
      * @param {string} message - Mensagem a ser exibida.
      * @param {boolean} positive - Se verdadeiro, aplica estilo de ação positiva ao botão.
      */
-    function showInfoModal(message, positive = false) {
+    function showInfoModal(message, positive = false, danger = false) {
         if (!confirmationModal || !modalMessage || !modalConfirmBtn) {
             alert(message);
             return;
         }
         const originalText = modalConfirmBtn.textContent;
         const hadPositive = modalConfirmBtn.classList.contains('positive-action');
+        const hadDanger = confirmationModal.classList.contains('modal-danger');
         modalMessage.textContent = message;
         if(modalIcon) {
-            modalIcon.className = 'modal-icon ' + (positive ? 'fas fa-check-circle' : 'fas fa-info-circle');
+            let iconClass = 'fas fa-info-circle';
+            if (positive) iconClass = 'fas fa-check-circle';
+            else if (danger) iconClass = 'fas fa-exclamation-circle';
+            modalIcon.className = 'modal-icon ' + iconClass;
         }
         modalConfirmBtn.textContent = 'OK';
         modalConfirmBtn.classList.toggle('positive-action', positive);
+        confirmationModal.classList.toggle('modal-danger', danger);
         if (modalCancelBtn) modalCancelBtn.style.display = 'none';
         actionToConfirm = null;
         confirmationModal.classList.add('show');
         const cleanup = () => {
             modalConfirmBtn.textContent = originalText;
             modalConfirmBtn.classList.toggle('positive-action', hadPositive);
+            confirmationModal.classList.toggle('modal-danger', hadDanger);
             if (modalCancelBtn) modalCancelBtn.style.display = '';
         };
         modalConfirmBtn.addEventListener('click', cleanup, { once: true });
@@ -1408,6 +1422,7 @@ function updateAutocompleteLists() {
             }
             renderLists();
             createListModal.classList.remove('show');
+            showToast('Lista adicionada com sucesso!');
         });
 
         createListModal.addEventListener('click', (e) => {
@@ -1415,9 +1430,9 @@ function updateAutocompleteLists() {
         });
     }
 
-    function showToast(message) {
+    function showToast(message, danger = false) {
         const toast = document.createElement('div');
-        toast.className = 'toast-message';
+        toast.className = 'toast-message' + (danger ? ' toast-danger' : '');
         toast.textContent = message;
         document.body.appendChild(toast);
         requestAnimationFrame(() => toast.classList.add('show'));

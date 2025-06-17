@@ -1974,6 +1974,22 @@ body.dark-mode .modal-content {
     margin-bottom: 10px;
 }
 
+.modal-danger .modal-icon {
+    color: var(--danger-color);
+}
+
+body.dark-mode .modal-danger .modal-icon {
+    color: var(--danger-color-dark);
+}
+
+.modal-danger #modal-message {
+    color: var(--danger-color);
+}
+
+body.dark-mode .modal-danger #modal-message {
+    color: var(--danger-color-dark);
+}
+
 .modal-content button {
     padding: 10px 20px;
     border: none;
@@ -2189,6 +2205,18 @@ body.dark-mode .switch input:checked+.slider-toggle {
     transform: translateY(20px);
     transition: opacity 0.3s, transform 0.3s;
     z-index: 1100;
+}
+
+.toast-message.toast-danger {
+    background-color: #f8d7da;
+    color: var(--danger-color);
+    border-color: var(--danger-color);
+}
+
+body.dark-mode .toast-message.toast-danger {
+    background-color: #5f1b1b;
+    color: var(--danger-color-dark);
+    border-color: var(--danger-color-dark);
 }
 
 .toast-message.show {
