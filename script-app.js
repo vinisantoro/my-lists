@@ -767,7 +767,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 showToast('Item adicionado com sucesso!');
             } catch (error) {
                 console.error("Erro ao adicionar item:", error);
-                showInfoModal('Erro ao adicionar item. Tente novamente.');
+                const msg = /insufficient permissions/i.test(error.message)
+                    ? 'Permissões insuficientes para adicionar item.'
+                    : 'Erro ao adicionar item. Tente novamente.';
+                showInfoModal(msg, false, true);
             }
         });
     }
@@ -837,7 +840,10 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast('Item excluído com sucesso!', true);
         } catch (error) {
             console.error("Erro ao excluir item:", error);
-            showInfoModal('Erro ao excluir item.');
+            const msg = /insufficient permissions/i.test(error.message)
+                ? 'Permissões insuficientes para excluir o item.'
+                : 'Erro ao excluir item.';
+            showInfoModal(msg, false, true);
         }
     }
 
@@ -1215,16 +1221,29 @@ function updateAutocompleteLists() {
         confirmationModal.classList.add('show'); // Adiciona classe para mostrar com transição
     }
 
+    let infoModalCleanup = null;
+
+    function cleanupModal() {
+        modalConfirmBtn.classList.remove('positive-action');
+        confirmationModal.classList.remove('modal-danger');
+        if (typeof infoModalCleanup === 'function') {
+            infoModalCleanup();
+            infoModalCleanup = null;
+        }
+    }
+
     if (modalConfirmBtn) {
         modalConfirmBtn.addEventListener('click', () => {
             if (typeof actionToConfirm === 'function') actionToConfirm();
             if (confirmationModal) confirmationModal.classList.remove('show');
+            cleanupModal();
             actionToConfirm = null;
         });
     }
     if (modalCancelBtn) {
         modalCancelBtn.addEventListener('click', () => {
             if (confirmationModal) confirmationModal.classList.remove('show');
+            cleanupModal();
             actionToConfirm = null;
         });
     }
@@ -1232,6 +1251,7 @@ function updateAutocompleteLists() {
         confirmationModal.addEventListener('click', (e) => {
             if (e.target === confirmationModal) {
                 confirmationModal.classList.remove('show');
+                cleanupModal();
                 actionToConfirm = null;
             }
         });
@@ -1269,6 +1289,7 @@ function updateAutocompleteLists() {
             confirmationModal.classList.toggle('modal-danger', hadDanger);
             if (modalCancelBtn) modalCancelBtn.style.display = '';
         };
+        infoModalCleanup = cleanup;
         modalConfirmBtn.addEventListener('click', cleanup, { once: true });
     }
 
