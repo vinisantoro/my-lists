@@ -2,11 +2,16 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /items/{itemId} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId
+      allow read, write: if request.auth != null
+        && request.auth.uid == resource.data.userId
+        && resource.data.userId == get(/databases/$(database)/documents/lists/$(resource.data.listId)).data.ownerId;
+      allow create: if request.auth != null
+        && request.auth.uid == request.resource.data.userId
+        && get(/databases/$(database)/documents/lists/$(request.resource.data.listId)).data.ownerId == request.auth.uid
         && request.resource.data.name is string
         && request.resource.data.brand is string
         && request.resource.data.category is string
+        && request.resource.data.listId is string
         && request.resource.data.rating is number
         && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 200
         && request.resource.data.brand.size() > 0 && request.resource.data.brand.size() <= 100
@@ -25,8 +30,16 @@ service cloud.firestore {
     match /sharedLists/{shareId} {
       allow create: if request.auth != null && request.auth.uid == request.resource.data.ownerId
         && request.resource.data.invitedEmail is string
-        && request.resource.data.permission in ['read', 'write'];
+        && request.resource.data.permission in ['read', 'write']
+        && request.resource.data.listId is string;
       allow read, write: if request.auth != null && request.auth.uid == resource.data.ownerId;
+    }
+
+    match /lists/{listId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.ownerId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.ownerId
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 100;
     }
   }
 }

@@ -1541,6 +1541,73 @@ body.dark-mode #items-table tbody tr:nth-child(even) {
     opacity: 0.85;
 }
 
+/* Estilos para a tabela de listas */
+#lists-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-size: 0.9em;
+}
+
+#lists-table th,
+#lists-table td {
+    border: 1px solid var(--border-color);
+    padding: 10px 8px;
+    font-size: 0.85em;
+    text-align: left;
+    vertical-align: middle;
+}
+
+body.dark-mode #lists-table th,
+body.dark-mode #lists-table td {
+    border: 1px solid var(--border-color-dark);
+}
+
+#lists-table thead th {
+    background-color: var(--text-color-dark);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.85em;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary-color);
+}
+
+body.light-mode #lists-table thead th {
+    background-color: var(--text-color-dark);
+    color: var(--text-secondary-color);
+}
+
+body.dark-mode #lists-table thead th {
+    background-color: #2c323f;
+    color: var(--text-secondary-color-dark);
+}
+
+#lists-table tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+body.dark-mode #lists-table tbody tr:nth-child(even) {
+    background-color: #282d37;
+}
+
+#lists-table td button {
+    margin-right: 5px;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    color: #fff;
+    transition: opacity 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+#lists-table td button:hover {
+    opacity: 0.85;
+}
+
 .edit-btn {
     background-color: var(--warning-color);
     color: #333;
@@ -1563,6 +1630,15 @@ body.dark-mode .delete-btn {
 .save-btn {
     background-color: var(--success-color);
     color: #fff;
+}
+
+.share-btn {
+    background-color: var(--success-color);
+    color: #fff;
+}
+
+body.dark-mode .share-btn {
+    background-color: var(--success-color-dark);
 }
 
 body.dark-mode .save-btn {

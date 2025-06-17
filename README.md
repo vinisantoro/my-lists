@@ -77,3 +77,12 @@ Este sistema evoluiu de uma versão inicial que utilizava o `localStorage` do na
 2. Cada documento deve conter os campos `ownerId`, `invitedEmail` e `permission` (`read` ou `write`).
 3. Ajuste as regras de segurança para permitir leitura de itens quando houver um documento em `sharedLists` que relacione o email logado com o `ownerId` do item.
 4. Para escrita, as regras devem também verificar se o usuário convidado possui `isPremium: true` em `userProfiles`.
+
+### Passos para habilitar Listas Múltiplas
+
+1. Crie uma nova coleção chamada `lists` no Firestore.
+2. Cada documento deve conter `ownerId`, `name`, `createdAt` e `updatedAt`.
+3. Adicione o campo `listId` em todos os documentos da coleção `items`, apontando para o ID da lista correspondente.
+4. Inclua também `listId` nos documentos de `sharedLists` para que o compartilhamento seja feito por lista.
+5. Atualize suas regras de segurança seguindo o arquivo `firestore.rules` deste repositório.
+6. Para itens existentes, crie manualmente uma lista (por exemplo, "Principal") e atualize cada item com o `listId` dessa lista.
