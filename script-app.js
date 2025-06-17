@@ -854,6 +854,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await db.collection('lists').doc(activeListId).update({
                 sharedEmails: firebase.firestore.FieldValue.arrayUnion(email)
             });
+            await loadAndRenderLists(false);
             showInfoModal('Lista compartilhada com sucesso!', true);
         } catch (e) {
             console.error('Erro ao compartilhar lista:', e);
@@ -886,6 +887,7 @@ document.addEventListener('DOMContentLoaded', () => {
             sharedEmails: firebase.firestore.FieldValue.arrayRemove(email)
         });
         loadSharedUsers();
+        await loadAndRenderLists(false);
         showToast('Usuário removido do compartilhamento');
     }
 
@@ -1064,7 +1066,7 @@ function updateAutocompleteLists() {
         if (!listsTableBody) return;
         listsTableBody.innerHTML = '';
         if (lists.length === 0) {
-            listsTableBody.innerHTML = '<tr><td colspan="5" class="empty-message">Nenhuma lista encontrada.</td></tr>';
+            listsTableBody.innerHTML = '<tr><td colspan="6" class="empty-message">Nenhuma lista encontrada.</td></tr>';
             return;
         }
         lists.forEach(list => {
@@ -1074,6 +1076,12 @@ function updateAutocompleteLists() {
             row.insertCell().textContent = formatDate(list.createdAt);
             row.insertCell().textContent = formatDate(list.updatedAt);
             row.insertCell().textContent = (currentUser && list.ownerId === currentUser.uid) ? 'Você' : (list.ownerEmail || '');
+            const sharedCell = row.insertCell();
+            if (Array.isArray(list.sharedEmails) && list.sharedEmails.length) {
+                sharedCell.textContent = list.sharedEmails.join(', ');
+            } else {
+                sharedCell.textContent = '-';
+            }
             const actionsCell = row.insertCell();
             const editBtn = document.createElement('button');
             editBtn.className = 'edit-btn';
