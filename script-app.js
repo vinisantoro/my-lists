@@ -1186,6 +1186,8 @@ function updateAutocompleteLists() {
                 console.error('Erro ao excluir lista:', error);
                 showInfoModal('Erro ao excluir lista.');
             }
+            renderLists();
+            showToast('Lista excluída com sucesso!', true);
         });
     }
 
