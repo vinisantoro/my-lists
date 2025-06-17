@@ -1165,19 +1165,26 @@ function updateAutocompleteLists() {
     function confirmDeleteList(id) {
         const l = lists.find(li => li.id === id);
         showConfirmationModal(`Excluir a lista "${l ? l.name : ''}" e todos os itens?`, async () => {
-            if (modoOperacao === 'firebase' && currentUser) {
-                await fbListManager.deleteList(id);
-            } else {
-                items = items.filter(it => it.listId !== id);
-                lsDataManager.saveItems(items);
-            }
+            try {
+                if (modoOperacao === 'firebase' && currentUser) {
+                    await fbListManager.deleteList(id);
+                } else {
+                    items = items.filter(it => it.listId !== id);
+                    lsDataManager.saveItems(items);
+                }
 
-            // Remove a lista do array local em ambos os modos
-            lists = lists.filter(li => li.id !== id);
-            if (modoOperacao !== 'firebase') lsListManager.saveLists(lists);
+                // Remove a lista do array local em ambos os modos
+                lists = lists.filter(li => li.id !== id);
+                if (modoOperacao !== 'firebase') lsListManager.saveLists(lists);
 
-            if (activeListId === id) {
-                activeListId = lists.length ? lists[0].id : null;
+                if (activeListId === id) {
+                    activeListId = lists.length ? lists[0].id : null;
+                }
+                renderLists();
+                showToast('Lista excluída com sucesso!', true);
+            } catch (error) {
+                console.error('Erro ao excluir lista:', error);
+                showInfoModal('Erro ao excluir lista.');
             }
             renderLists();
             showToast('Lista excluída com sucesso!', true);
