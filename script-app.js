@@ -92,6 +92,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let themeToggleIcons = Array.from(themeToggleButtons).map(btn => btn.querySelector('i'));
     const exportButton = document.getElementById('export-data');
     const importFileInput = document.getElementById('import-file');
+    const exportButtonLists = document.getElementById('export-data-lists');
+    const importFileInputLists = document.getElementById('import-file-lists');
+    const logoutButtonLists = document.getElementById('logout-button-lists');
     const deleteCategoryButton = document.getElementById('delete-category');
     const shareListButton = document.getElementById('share-list');
     const shareModal = document.getElementById('share-modal');
@@ -103,6 +106,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalMessage = document.getElementById('modal-message');
     const modalConfirmBtn = document.getElementById('modal-confirm-btn');
     const modalCancelBtn = document.getElementById('modal-cancel-btn');
+    const modalIcon = document.getElementById('modal-icon');
+    const sharedUsersList = document.getElementById('shared-users-list');
 
     // ---------------------------------------------------------------------------
     // ESTADO GLOBAL DA APLICAÇÃO
@@ -424,6 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if(userEmailDisplay) userEmailDisplay.textContent = currentUser ? currentUser.email : (isGuest ? 'Convidado' : '');
         if(logoutButton) logoutButton.style.display = currentUser ? 'inline-block' : 'none';
+        if(logoutButtonLists) logoutButtonLists.style.display = currentUser ? 'inline-block' : 'none';
         if(guestModeOption) guestModeOption.style.display = currentUser ? 'none' : 'block'; // Mostra se não há usuário logado
         
         if(upgradeToPremiumButton) {
@@ -438,10 +444,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if(backToListsButton) backToListsButton.style.display = 'none';
 
         if(modeIndicator) {
-            if (currentUser && userProfile.isPremium) modeIndicator.textContent = 'Premium Cloud';
-            else if (currentUser && !userProfile.isPremium) modeIndicator.textContent = 'Gratuito (Online)';
-            else if (isGuest) modeIndicator.textContent = 'Convidado Local';
-            else modeIndicator.textContent = '';
+            modeIndicator.classList.remove('premium-indicator');
+            if (currentUser && userProfile.isPremium) {
+                modeIndicator.textContent = 'Premium Cloud';
+                modeIndicator.classList.add('premium-indicator');
+            } else if (currentUser && !userProfile.isPremium) {
+                modeIndicator.textContent = 'Gratuito (Online)';
+            } else if (isGuest) {
+                modeIndicator.textContent = 'Convidado Local';
+            } else {
+                modeIndicator.textContent = '';
+            }
         }
     }
     
@@ -583,11 +596,15 @@ document.addEventListener('DOMContentLoaded', () => {
             // onAuthStateChanged cuidará da atualização da UI
         });
     }
-    // Listener para o botão de Logout
+    function handleLogout() {
+        auth.signOut().catch(error => console.error("Erro no logout:", error.message));
+    }
+
     if (logoutButton) {
-        logoutButton.addEventListener('click', () => { 
-            auth.signOut().catch(error => console.error("Erro no logout:", error.message));
-        });
+        logoutButton.addEventListener('click', handleLogout);
+    }
+    if (logoutButtonLists) {
+        logoutButtonLists.addEventListener('click', handleLogout);
     }
     // Listener para o botão de Upgrade (apenas redireciona)
     if (upgradeToPremiumButton) {
@@ -797,6 +814,30 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Erro ao compartilhar lista:', e);
             showInfoModal('Erro ao compartilhar lista.');
         }
+    }
+
+    async function loadSharedUsers() {
+        if (!sharedUsersList) return;
+        sharedUsersList.innerHTML = '';
+        if (!currentUser || !userProfile.isPremium) return;
+        const snap = await db.collection('sharedLists')
+            .where('ownerId', '==', currentUser.uid)
+            .where('listId', '==', activeListId)
+            .get();
+        snap.forEach(doc => {
+            const li = document.createElement('li');
+            li.textContent = doc.data().invitedEmail;
+            const btn = document.createElement('button');
+            btn.innerHTML = '<i class="fas fa-times-circle"></i>';
+            btn.addEventListener('click', () => unshareUser(doc.id));
+            li.appendChild(btn);
+            sharedUsersList.appendChild(li);
+        });
+    }
+
+    async function unshareUser(id) {
+        await db.collection('sharedLists').doc(id).delete();
+        loadSharedUsers();
     }
 
     // Funções para iniciar e cancelar a edição inline de um item
@@ -1049,6 +1090,9 @@ function updateAutocompleteLists() {
             return;
         }
         modalMessage.textContent = message;
+        if(modalIcon) {
+            modalIcon.className = 'modal-icon ' + (isPositiveAction ? 'fas fa-check-circle' : 'fas fa-exclamation-circle');
+        }
         actionToConfirm = onConfirm;
         modalConfirmBtn.classList.toggle('positive-action', isPositiveAction);
         confirmationModal.classList.add('show'); // Adiciona classe para mostrar com transição
@@ -1089,6 +1133,9 @@ function updateAutocompleteLists() {
         const originalText = modalConfirmBtn.textContent;
         const hadPositive = modalConfirmBtn.classList.contains('positive-action');
         modalMessage.textContent = message;
+        if(modalIcon) {
+            modalIcon.className = 'modal-icon ' + (positive ? 'fas fa-check-circle' : 'fas fa-info-circle');
+        }
         modalConfirmBtn.textContent = 'OK';
         modalConfirmBtn.classList.toggle('positive-action', positive);
         if (modalCancelBtn) modalCancelBtn.style.display = 'none';
@@ -1105,10 +1152,9 @@ function updateAutocompleteLists() {
     // ---------------------------------------------------------------------------
     // FUNCIONALIDADE DE IMPORTAR/EXPORTAR DADOS
     // ---------------------------------------------------------------------------
-    if (exportButton) {
-        exportButton.addEventListener('click', () => {
-            if (items.length === 0) { showInfoModal('Não há dados para exportar.'); return; }
-            let itemsToExport = JSON.parse(JSON.stringify(items)); // Cria cópia profunda
+    function handleExportData() {
+        if (items.length === 0) { showInfoModal('Não há dados para exportar.'); return; }
+        let itemsToExport = JSON.parse(JSON.stringify(items)); // Cria cópia profunda
             
             if (modoOperacao === 'firebase') { 
                 // Remove campos específicos do Firebase se não forem úteis para um backup genérico
@@ -1125,19 +1171,23 @@ function updateAutocompleteLists() {
             const linkElement = document.createElement('a');
             linkElement.setAttribute('href', dataUri); 
             linkElement.setAttribute('download', fileName);
-            linkElement.click(); 
-            linkElement.remove();
-        });
+        linkElement.click();
+        linkElement.remove();
+    }
+    if (exportButton) {
+        exportButton.addEventListener('click', handleExportData);
+    }
+    if (exportButtonLists) {
+        exportButtonLists.addEventListener('click', handleExportData);
     }
 
-    if (importFileInput) {
-        importFileInput.addEventListener('change', async (event) => {
-            const file = event.target.files[0]; 
-            if (!file) return;
-            if (file.type !== "application/json") { showInfoModal('Arquivo JSON inválido.'); importFileInput.value = ""; return; }
-            
-            const reader = new FileReader();
-            reader.onload = async (e) => {
+    async function handleImportFile(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        if (file.type !== "application/json") { showInfoModal('Arquivo JSON inválido.'); event.target.value = ""; return; }
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
                 try {
                     const importedPayload = JSON.parse(e.target.result);
                     let importedItemsList; 
@@ -1188,11 +1238,16 @@ function updateAutocompleteLists() {
                 } catch (error) {
                     showInfoModal('Erro ao processar o arquivo JSON: ' + error.message);
                 } finally { 
-                    importFileInput.value = ""; // Limpa o input de arquivo
+                    event.target.value = ""; // Limpa o input de arquivo
                 }
             };
-            reader.readAsText(file);
-        });
+        reader.readAsText(file);
+    }
+    if (importFileInput) {
+        importFileInput.addEventListener('change', handleImportFile);
+    }
+    if (importFileInputLists) {
+        importFileInputLists.addEventListener('change', handleImportFile);
     }
 
     if (deleteCategoryButton) {
@@ -1210,6 +1265,7 @@ function updateAutocompleteLists() {
             if (shareModal && shareEmailInput && shareRecordingCheckbox) {
                 shareEmailInput.value = '';
                 shareRecordingCheckbox.checked = false;
+                loadSharedUsers();
                 shareModal.classList.add('show');
             }
         });
@@ -1252,6 +1308,18 @@ function updateAutocompleteLists() {
         });
     }
 
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'toast-message';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        requestAnimationFrame(() => toast.classList.add('show'));
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
     if (listNameDisplay) {
         listNameDisplay.addEventListener('blur', async () => {
             const newName = listNameDisplay.textContent.trim();
@@ -1264,6 +1332,7 @@ function updateAutocompleteLists() {
                 lsListManager.saveLists(lists);
             }
             renderLists();
+            showToast('Alteração Concluída');
         });
     }
 
@@ -1281,6 +1350,7 @@ function updateAutocompleteLists() {
             if (!email) return;
             const permission = shareRecordingCheckbox.checked ? 'write' : 'read';
             await shareListWithEmail(email, permission);
+            loadSharedUsers();
             shareModal.classList.remove('show');
         });
         shareModal.addEventListener('click', (e) => {
