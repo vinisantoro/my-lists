@@ -2076,7 +2076,6 @@ body.dark-mode #mode-indicator {
     border-image: initial;
     border-radius: 6px;
     -webkit-rtl-ordering: logical;
-    -webkit-appearance: textfield;
 }
 
 
