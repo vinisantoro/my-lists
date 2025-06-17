@@ -820,7 +820,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!itemToDelete) return;
 
         try {
-            if (modoOperacao === 'firebase' && currentUser) { 
+            if (modoOperacao === 'firebase' && currentUser) {
                 if (!activeListCanWrite) { showInfoModal('Acesso somente leitura.'); return; }
                 await activeDataManager.deleteItem(itemId); // onSnapshot do Firebase cuida da UI
                 // A lógica de atualizar activeCategory se a categoria for removida pode ser feita no callback do onSnapshot
@@ -833,6 +833,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 renderAppUI(); // Re-renderiza para LocalStorage
             }
+            showInfoModal('Item excluído com sucesso!', false, true);
         } catch (error) {
             console.error("Erro ao excluir item:", error);
             showInfoModal('Erro ao excluir item.');
@@ -1178,7 +1179,8 @@ function updateAutocompleteLists() {
                 activeListId = lists.length ? lists[0].id : null;
             }
             renderLists();
-        }, true);
+            showInfoModal('Lista excluída com sucesso!', false, true);
+        });
     }
 
     function formatDate(ts) {
@@ -1232,25 +1234,31 @@ function updateAutocompleteLists() {
      * @param {string} message - Mensagem a ser exibida.
      * @param {boolean} positive - Se verdadeiro, aplica estilo de ação positiva ao botão.
      */
-    function showInfoModal(message, positive = false) {
+    function showInfoModal(message, positive = false, danger = false) {
         if (!confirmationModal || !modalMessage || !modalConfirmBtn) {
             alert(message);
             return;
         }
         const originalText = modalConfirmBtn.textContent;
         const hadPositive = modalConfirmBtn.classList.contains('positive-action');
+        const hadDanger = confirmationModal.classList.contains('modal-danger');
         modalMessage.textContent = message;
         if(modalIcon) {
-            modalIcon.className = 'modal-icon ' + (positive ? 'fas fa-check-circle' : 'fas fa-info-circle');
+            let iconClass = 'fas fa-info-circle';
+            if (positive) iconClass = 'fas fa-check-circle';
+            else if (danger) iconClass = 'fas fa-exclamation-circle';
+            modalIcon.className = 'modal-icon ' + iconClass;
         }
         modalConfirmBtn.textContent = 'OK';
         modalConfirmBtn.classList.toggle('positive-action', positive);
+        confirmationModal.classList.toggle('modal-danger', danger);
         if (modalCancelBtn) modalCancelBtn.style.display = 'none';
         actionToConfirm = null;
         confirmationModal.classList.add('show');
         const cleanup = () => {
             modalConfirmBtn.textContent = originalText;
             modalConfirmBtn.classList.toggle('positive-action', hadPositive);
+            confirmationModal.classList.toggle('modal-danger', hadDanger);
             if (modalCancelBtn) modalCancelBtn.style.display = '';
         };
         modalConfirmBtn.addEventListener('click', cleanup, { once: true });
