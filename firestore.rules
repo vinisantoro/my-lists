@@ -1,20 +1,39 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function canWriteToList(listId) {
-      let list = get(/databases/$(database)/documents/lists/$(listId)).data;
-      return request.auth.uid == list.ownerId ||
-             (list.writerEmails != null && request.auth.token.email in list.writerEmails);
+    // Helpers -------------------------------------------------------
+    function listData(listId) {
+      return get(/databases/$(database)/documents/lists/$(listId)).data;
     }
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(list) {
+      return signedIn() && request.auth.uid == list.ownerId;
+    }
+
+    function isWriter(list) {
+      return signedIn() && list.writerEmails != null && request.auth.token.email in list.writerEmails;
+    }
+
+    function canWrite(listId) {
+      let list = listData(listId);
+      return isOwner(list) || isWriter(list);
+    }
+
+    function canRead(list) {
+      return isOwner(list) || (list.sharedEmails != null && request.auth.token.email in list.sharedEmails);
+    }
+
+    // Items ---------------------------------------------------------
     match /items/{itemId} {
-      allow read: if request.auth != null && (
-        request.auth.uid == resource.data.userId ||
-        request.auth.token.email in get(/databases/$(database)/documents/lists/$(resource.data.listId)).data.sharedEmails
-      );
-      allow write: if request.auth != null && canWriteToList(resource.data.listId);
-      allow create: if request.auth != null
-        && request.resource.data.userId == get(/databases/$(database)/documents/lists/$(request.resource.data.listId)).data.ownerId
-        && canWriteToList(request.resource.data.listId)
+      allow read: if signedIn() && canRead(listData(resource.data.listId));
+      allow write: if signedIn() && canWrite(resource.data.listId);
+      allow create: if signedIn()
+        && request.resource.data.userId == listData(request.resource.data.listId).ownerId
+        && canWrite(request.resource.data.listId)
         && request.resource.data.name is string
         && request.resource.data.brand is string
         && request.resource.data.category is string
@@ -26,33 +45,33 @@ service cloud.firestore {
         && request.resource.data.rating >= 0 && request.resource.data.rating <= 5;
     }
 
+    // User-specific collections ------------------------------------
     match /userPreferences/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-    
-    match /userProfiles/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if signedIn() && request.auth.uid == userId;
     }
 
+    match /userProfiles/{userId} {
+      allow read, write: if signedIn() && request.auth.uid == userId;
+    }
+
+    // Shared list management ---------------------------------------
     match /sharedLists/{shareId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.ownerId
+      allow create: if signedIn() && request.auth.uid == request.resource.data.ownerId
         && request.resource.data.invitedEmail is string
         && request.resource.data.permission in ['read', 'write']
         && request.resource.data.listId is string;
-      allow read: if request.auth != null && (
+      allow read: if signedIn() && (
         request.auth.uid == resource.data.ownerId ||
         request.auth.token.email == resource.data.invitedEmail
       );
-      allow delete, update: if request.auth != null && request.auth.uid == resource.data.ownerId;
+      allow delete, update: if signedIn() && request.auth.uid == resource.data.ownerId;
     }
 
+    // List documents -----------------------------------------------
     match /lists/{listId} {
-      allow read: if request.auth != null && (
-        request.auth.uid == resource.data.ownerId ||
-        request.auth.token.email in resource.data.sharedEmails
-      );
-      allow write: if request.auth != null && request.auth.uid == resource.data.ownerId;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.ownerId
+      allow read: if signedIn() && canRead(listData(listId));
+      allow write: if signedIn() && request.auth.uid == resource.data.ownerId;
+      allow create: if signedIn() && request.auth.uid == request.resource.data.ownerId
         && request.resource.data.name is string
         && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 100;
     }
