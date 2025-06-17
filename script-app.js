@@ -255,11 +255,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     .get();
                 for (const shareDoc of sharedSnap.docs) {
                     const data = shareDoc.data();
-                    const listDoc = await db.collection('lists').doc(data.listId).get();
+                    const listRef = db.collection('lists').doc(data.listId);
+                    const listDoc = await listRef.get();
                     if (listDoc.exists) {
+                        const listData = listDoc.data();
+                        if (data.permission === 'write' && (!listData.writerEmails || !listData.writerEmails.includes(data.invitedEmail))) {
+                            try {
+                                await listRef.update({
+                                    writerEmails: firebase.firestore.FieldValue.arrayUnion(data.invitedEmail)
+                                });
+                                listData.writerEmails = (listData.writerEmails || []).concat([data.invitedEmail]);
+                            } catch (e) {
+                                console.error('Erro ao sincronizar permissao de escrita:', e);
+                            }
+                        }
                         lists.push({
                             id: listDoc.id,
-                            ...listDoc.data(),
+                            ...listData,
                             permission: data.permission,
                             canWrite: userProfile.isPremium && data.permission === 'write'
                         });
@@ -279,6 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = {
                 ownerId: userId,
                 name,
+                writerEmails: [],
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
@@ -851,9 +864,13 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const docId = `${activeListId}_${email.replace(/[^a-zA-Z0-9]/g, '_')}`;
             await db.collection('sharedLists').doc(docId).set({ ownerId: currentUser.uid, listId: activeListId, invitedEmail: email, permission });
-            await db.collection('lists').doc(activeListId).update({
+            const updateData = {
                 sharedEmails: firebase.firestore.FieldValue.arrayUnion(email)
-            });
+            };
+            if (permission === 'write') {
+                updateData.writerEmails = firebase.firestore.FieldValue.arrayUnion(email);
+            }
+            await db.collection('lists').doc(activeListId).update(updateData);
             await loadAndRenderLists(false);
             showInfoModal('Lista compartilhada com sucesso!', true);
         } catch (e) {
@@ -872,10 +889,11 @@ document.addEventListener('DOMContentLoaded', () => {
             .get();
         snap.forEach(doc => {
             const li = document.createElement('li');
-            li.textContent = doc.data().invitedEmail;
+            const data = doc.data();
+            li.textContent = `${data.invitedEmail} - ${data.permission}`;
             const btn = document.createElement('button');
             btn.innerHTML = '<i class="fas fa-times-circle"></i>';
-            btn.addEventListener('click', () => unshareUser(doc.id, doc.data().invitedEmail));
+            btn.addEventListener('click', () => unshareUser(doc.id, data.invitedEmail));
             li.appendChild(btn);
             sharedUsersList.appendChild(li);
         });
@@ -884,7 +902,8 @@ document.addEventListener('DOMContentLoaded', () => {
     async function unshareUser(id, email) {
         await db.collection('sharedLists').doc(id).delete();
         await db.collection('lists').doc(activeListId).update({
-            sharedEmails: firebase.firestore.FieldValue.arrayRemove(email)
+            sharedEmails: firebase.firestore.FieldValue.arrayRemove(email),
+            writerEmails: firebase.firestore.FieldValue.arrayRemove(email)
         });
         loadSharedUsers();
         await loadAndRenderLists(false);
@@ -933,7 +952,7 @@ function updateAutocompleteLists() {
 
     function updateCategoryControls() {
         if (deleteCategoryButton) {
-            if (activeCategory === 'all') {
+            if (!activeListCanWrite || activeCategory === 'all') {
                 deleteCategoryButton.style.display = 'none';
             } else {
                 const hasItems = items.some(it => it.category === activeCategory);
@@ -1340,7 +1359,7 @@ function updateAutocompleteLists() {
 
     if (deleteCategoryButton) {
         deleteCategoryButton.addEventListener('click', () => {
-            if (activeCategory === 'all') return;
+            if (!activeListCanWrite || activeCategory === 'all') return;
             const count = items.filter(it => it.category === activeCategory).length;
             if (count === 0) return;
             showConfirmationModal(`Remover todos os ${count} itens da categoria "${activeCategory}"?`, () => deleteAllItemsOfCategory(activeCategory));
