@@ -1085,18 +1085,22 @@ body.dark-mode #app-content #item-form h2 {
     grid-column: 1 / -1;
 }
 
-#app-content #item-form label {
+#app-content #item-form label,
+#app-content #share-form label {
     display: block;
     margin-bottom: 6px;
     font-weight: 500;
     color: var(--text-secondary-color);
 }
 
-body.dark-mode #app-content #item-form label {
+body.dark-mode #app-content #item-form label,
+body.dark-mode #app-content #share-form label {
     color: var(--text-secondary-color-dark);
 }
 
 #app-content #item-form input[type="text"],
+#share-form input[type="text"],
+#create-list-form input[type="text"],
 #app-content #item-form textarea {
     width: 100%;
     padding: 10px 12px;
@@ -1114,6 +1118,8 @@ body.dark-mode #app-content #item-form label {
 }
 
 body.dark-mode #app-content #item-form input[type="text"],
+body.dark-mode #share-form input[type="text"],
+body.dark-mode #create-list-form input[type="text"],
 body.dark-mode #app-content #item-form textarea {
     background-color: var(--input-bg-dark);
     border-color: var(--input-border-dark);
@@ -1121,6 +1127,8 @@ body.dark-mode #app-content #item-form textarea {
 }
 
 #app-content #item-form input[type="text"]:focus,
+#share-form input[type="text"]:focus,
+#create-list-form input[type="text"]:focus,
 #app-content #item-form textarea:focus {
     outline: none;
     border-color: var(--primary-color);
@@ -1128,6 +1136,8 @@ body.dark-mode #app-content #item-form textarea {
 }
 
 body.dark-mode #app-content #item-form input[type="text"]:focus,
+body.dark-mode #share-form input[type="text"]:focus,
+body.dark-mode #create-list-form input[type="text"]:focus,
 body.dark-mode #app-content #item-form textarea:focus {
     border-color: var(--primary-color-dark);
     box-shadow: 0 0 0 0.2rem rgba(0, 132, 255, 0.25);
@@ -2078,16 +2088,18 @@ body.dark-mode #mode-indicator {
 }
 
 /* ===== Modal de Compartilhamento ===== */
-#share-form {
+#share-form,
+#create-list-form {
     margin: 25px;
 }
 
-#share-form input {
+#share-form input,
+#create-list-form input {
     background-color: white;
     cursor: text;
     padding: 5px;
-    border-width: 2px;
-    border-style: hidden;
+    border-width: 1px;
+    border-style: inset;
     border-color: initial;
     border-image: initial;
     border-radius: 6px;
@@ -2105,12 +2117,14 @@ body.dark-mode #mode-indicator {
     font-weight: 500;
 }
 
-.switch-group {
+.switch-group,
+.new-list-date-group {
     display: flex;
     flex-direction: row;
     align-items: flex-start;
     justify-content: space-between;
     margin-bottom: 20px;
+    font-weight: 500;
 }
 
 .switch-label {
