@@ -2,9 +2,11 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /items/{itemId} {
-      allow read, write: if request.auth != null
-        && request.auth.uid == resource.data.userId
-        && resource.data.userId == get(/databases/$(database)/documents/lists/$(resource.data.listId)).data.ownerId;
+      allow read: if request.auth != null && (
+        request.auth.uid == resource.data.userId ||
+        request.auth.token.email in get(/databases/$(database)/documents/lists/$(resource.data.listId)).data.sharedEmails
+      );
+      allow write: if request.auth != null && request.auth.uid == resource.data.userId;
       allow create: if request.auth != null
         && request.auth.uid == request.resource.data.userId
         && get(/databases/$(database)/documents/lists/$(request.resource.data.listId)).data.ownerId == request.auth.uid
@@ -32,11 +34,19 @@ service cloud.firestore {
         && request.resource.data.invitedEmail is string
         && request.resource.data.permission in ['read', 'write']
         && request.resource.data.listId is string;
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.ownerId;
+      allow read: if request.auth != null && (
+        request.auth.uid == resource.data.ownerId ||
+        request.auth.token.email == resource.data.invitedEmail
+      );
+      allow delete, update: if request.auth != null && request.auth.uid == resource.data.ownerId;
     }
 
     match /lists/{listId} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.ownerId;
+      allow read: if request.auth != null && (
+        request.auth.uid == resource.data.ownerId ||
+        request.auth.token.email in resource.data.sharedEmails
+      );
+      allow write: if request.auth != null && request.auth.uid == resource.data.ownerId;
       allow create: if request.auth != null && request.auth.uid == request.resource.data.ownerId
         && request.resource.data.name is string
         && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 100;

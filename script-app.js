@@ -849,7 +849,11 @@ document.addEventListener('DOMContentLoaded', () => {
     async function shareListWithEmail(email, permission) {
         if (!currentUser || !userProfile || !userProfile.isPremium) return;
         try {
-            await db.collection('sharedLists').add({ ownerId: currentUser.uid, listId: activeListId, invitedEmail: email, permission });
+            const docId = `${activeListId}_${email.replace(/[^a-zA-Z0-9]/g, '_')}`;
+            await db.collection('sharedLists').doc(docId).set({ ownerId: currentUser.uid, listId: activeListId, invitedEmail: email, permission });
+            await db.collection('lists').doc(activeListId).update({
+                sharedEmails: firebase.firestore.FieldValue.arrayUnion(email)
+            });
             showInfoModal('Lista compartilhada com sucesso!', true);
         } catch (e) {
             console.error('Erro ao compartilhar lista:', e);
@@ -870,14 +874,17 @@ document.addEventListener('DOMContentLoaded', () => {
             li.textContent = doc.data().invitedEmail;
             const btn = document.createElement('button');
             btn.innerHTML = '<i class="fas fa-times-circle"></i>';
-            btn.addEventListener('click', () => unshareUser(doc.id));
+            btn.addEventListener('click', () => unshareUser(doc.id, doc.data().invitedEmail));
             li.appendChild(btn);
             sharedUsersList.appendChild(li);
         });
     }
 
-    async function unshareUser(id) {
+    async function unshareUser(id, email) {
         await db.collection('sharedLists').doc(id).delete();
+        await db.collection('lists').doc(activeListId).update({
+            sharedEmails: firebase.firestore.FieldValue.arrayRemove(email)
+        });
         loadSharedUsers();
         showToast('Usuário removido do compartilhamento');
     }
