@@ -453,6 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
      * Observador do estado de autenticação do Firebase.
      * Gerencia a UI e os dados com base no status de login do usuário.
      */
+    let profileInitialized = false;
     auth.onAuthStateChanged(async user => {
         unsubscribePrefsListener(); // Cancela listener de preferências anterior
         unsubscribeItemsListener(); // Cancela listener de itens anterior
@@ -463,28 +464,35 @@ document.addEventListener('DOMContentLoaded', () => {
             // Listener para o perfil do usuário (isPremium, theme)
             unsubscribePrefsListener = db.collection('userProfiles').doc(user.uid)
                 .onSnapshot(async (doc) => {
-                    if (doc.exists) { 
-                        userProfile = doc.data(); 
-                    } else { 
+                    const prevProfile = userProfile;
+                    if (doc.exists) {
+                        userProfile = doc.data();
+                    } else {
                         // Perfil não existe, cria um perfil padrão gratuito
                         userProfile = { isPremium: false, theme: 'light' };
-                        try { 
+                        try {
                             await db.collection('userProfiles').doc(user.uid).set(userProfile);
-                            // console.log("Perfil de usuário gratuito padrão criado no Firestore.");
-                        } catch (e) { 
-                            console.error("Erro ao criar perfil default no Firestore:", e); 
+                        } catch (e) {
+                            console.error("Erro ao criar perfil default no Firestore:", e);
                         }
                     }
-                    // Determina o modo de operação com base no status premium
+
+                    const modeChanged = !prevProfile || prevProfile.isPremium !== userProfile.isPremium;
+
                     modoOperacao = userProfile.isPremium ? 'firebase' : 'localStorage';
                     activeDataManager = userProfile.isPremium ? fbDataManager : lsDataManager;
-                    
-                    applyTheme(userProfile.theme || 'light'); // Aplica tema do perfil ou padrão
-                    updateUIVisibility(true);   // Mostra o conteúdo do app
-                    updateUserSpecificUI();     // Atualiza UI específica do usuário
-                    await loadAndRenderLists();
-                    await loadAndRenderData();  // Carrega e renderiza os dados do modo correto
-                }, 
+                    applyTheme(userProfile.theme || 'light');
+                    if (!profileInitialized || modeChanged) {
+                        updateUIVisibility(true);
+                        updateUserSpecificUI();
+                        await loadAndRenderLists(true);
+                        await loadAndRenderData();
+                        profileInitialized = true;
+                    } else {
+                        // Apenas atualiza o tema sem mudar de visão
+                        await loadAndRenderLists(false);
+                    }
+                },
                 async (error) => { // Callback de erro para o listener do perfil
                     console.error("Erro no listener do perfil do usuário:", error);
                     // Fallback em caso de erro ao ler o perfil
@@ -593,7 +601,7 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Carrega os itens (do Firebase ou LocalStorage) e chama a renderização da UI.
      */
-    async function loadAndRenderLists() {
+    async function loadAndRenderLists(showListsView = true) {
         if (modoOperacao === 'firebase' && currentUser) {
             lists = await fbListManager.loadLists(currentUser.uid);
         } else {
@@ -601,9 +609,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (lists.length > 0 && !activeListId) activeListId = lists[0].id;
         renderLists();
-        if (listsSection) listsSection.style.display = 'block';
-        if (itemsSection) itemsSection.style.display = 'none';
-        if (backToListsButton) backToListsButton.style.display = 'none';
+
+        if (showListsView) {
+            if (listsSection) listsSection.style.display = 'block';
+            if (itemsSection) itemsSection.style.display = 'none';
+            if (backToListsButton) backToListsButton.style.display = 'none';
+        }
     }
 
     async function loadAndRenderData() {
@@ -971,6 +982,7 @@ function updateAutocompleteLists() {
             editBtn.addEventListener('click', () => openList(list.id));
             actionsCell.appendChild(editBtn);
             const shareBtn = document.createElement('button');
+            shareBtn.className = 'share-btn';
             shareBtn.innerHTML = '<i class="fas fa-share-alt"></i>';
             shareBtn.addEventListener('click', () => { activeListId = list.id; shareModal.classList.add('show'); });
             actionsCell.appendChild(shareBtn);
@@ -1006,12 +1018,17 @@ function updateAutocompleteLists() {
             if (modoOperacao === 'firebase' && currentUser) {
                 await fbListManager.deleteList(id);
             } else {
-                lists = lists.filter(li => li.id !== id);
-                lsListManager.saveLists(lists);
                 items = items.filter(it => it.listId !== id);
                 lsDataManager.saveItems(items);
             }
-            if (activeListId === id) { activeListId = lists.length ? lists[0].id : null; }
+
+            // Remove a lista do array local em ambos os modos
+            lists = lists.filter(li => li.id !== id);
+            if (modoOperacao !== 'firebase') lsListManager.saveLists(lists);
+
+            if (activeListId === id) {
+                activeListId = lists.length ? lists[0].id : null;
+            }
             renderLists();
         }, true);
     }
@@ -1227,13 +1244,11 @@ function updateAutocompleteLists() {
                 lsListManager.saveLists(lists);
             }
             renderLists();
-
             createListModal.classList.remove('show');
         });
 
         createListModal.addEventListener('click', (e) => {
             if (e.target === createListModal) createListModal.classList.remove('show');
-
         });
     }
 
