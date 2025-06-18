@@ -3,11 +3,16 @@
   "version": "1.0.0",
   "description": "Um simples site em HTML, CSS e JavaScript.",
   "main": "index.html",
+  "type": "module",
   "scripts": {
-    "start": "echo 'Nenhum script de inicialização configurado. Abra o index.html diretamente no navegador.'",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "npx cypress open",
+    "test": "npx cypress run --browser electron",
+    "cypress:web": "npx cypress open" 
   },
   "keywords": [],
   "author": "Vinicius Correa <vini.santoro@gmail.com>",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "cypress": "^14.4.1"
+  }
 }
