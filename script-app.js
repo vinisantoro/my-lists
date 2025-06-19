@@ -466,7 +466,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if(userEmailDisplay) userEmailDisplay.textContent = currentUser ? currentUser.email : (isGuest ? 'Convidado' : '');
         if(logoutButton) logoutButton.style.display = currentUser ? 'inline-block' : 'none';
-        if(logoutButtonLists) logoutButtonLists.style.display = currentUser ? 'inline-block' : 'none';
+        if(logoutButtonLists) logoutButtonLists.style.display = (currentUser || isGuest) ? 'inline-block' : 'none';
         if(guestModeOption) guestModeOption.style.display = currentUser ? 'none' : 'block'; // Mostra se não há usuário logado
         
         if(upgradeToPremiumButton) {
