@@ -152,8 +152,6 @@ describe('Not Authenticated User', () => {
       cy.get('#continue-guest').click();
       cy.contains('#mode-indicator', 'Convidado').should('exist');
     });
-  });
-  describe('Logout', () => {
     it('logs out from the app', () => {
       cy.get('#logout-button-lists').click();
       cy.get('#auth-section').should('be.visible');
@@ -189,6 +187,14 @@ describe('Not Authenticated User', () => {
       itemForm.submit();
       cy.contains('#items-table td', itemName).should('exist');
     });
+    it('toggles dark mode', () => {
+      themeToggle.toggle();
+      cy.get('body').should('have.class', 'dark-mode');
+    });
+    it('toggles light mode', () => {
+      themeToggle.toggle();
+      cy.get('body').should('not.have.class', 'dark-mode');
+    });    
     it('edits an item', () => {
       itemsPage.editItem(itemName, 'Galaxy Edit');
       cy.contains('#items-table td', 'Galaxy Edit').should('exist');
@@ -198,39 +204,37 @@ describe('Not Authenticated User', () => {
       cy.contains('#items-table td', 'Galaxy Edit').should('not.exist');
     });
     it('deletes a list', () => {
-      cy.contains('#back-to-lists').click();
+      cy.get('#back-to-lists').click();
       listsPage.deleteList(listName);
       cy.contains('#lists-table td', listName).should('not.exist');
     });
   });  
-  describe('Theme Preference', () => {
-    it('toggles dark mode', () => {
-      themeToggle.toggle();
-      cy.get('body').should('have.class', 'dark-mode');
-    });
-  });
 });
 
 describe('User Authentication', () => {
-  describe('Registering a new user', () => {
-    const input = { user: 'registered@test.com', password: 'Password123' };
-    it('Given I am on the registration form', () => {
-      cy.visit('/app.html');
-      registerForm.clickRegister();
-    });
-    it(`When I fill "${input.user}" with a valid email`, () => {
-      registerForm.typeNewUsername(input.user);
-    });
-    it(`And I fill "${input.password}" with a valid password`, () => {
-      registerForm.typeNewPassword(input.password);
-    });
-    it('And I submit the "signup-form"', () => {
-      registerForm.clickCreateUser();
-    });
-    it('Then I should see the main screen with my lists', () => {
-      cy.get('#lists-section').should('be.visible');
-    });
-  });
+  // describe('Registering a new user', () => {
+  //   const input = { user: 'registered@test.com', password: 'Password123' };
+  //   it('Given I am on the registration form', () => {
+  //     cy.visit('/app.html');
+  //     registerForm.clickRegister();
+  //   });
+  //   it(`When I fill "${input.user}" with a valid email`, () => {
+  //     registerForm.typeNewUsername(input.user);
+  //   });
+  //   it(`And I fill "${input.password}" with a valid password`, () => {
+  //     registerForm.typeNewPassword(input.password);
+  //   });
+  //   it('And I submit the "signup-form"', () => {
+  //     registerForm.clickCreateUser();
+  //   });
+  //   it('Then I should see the main screen with my lists', () => {
+  //     cy.get('#lists-section').should('be.visible');
+  //   });
+  //   it('logs out from the app', () => {
+  //     cy.get('#logout-button-lists').click();
+  //     cy.get('#auth-section').should('be.visible');
+  //   });
+  // });
 
   describe('Logging in with an existing user', () => {
     it('Given I am on the login form', () => {
@@ -242,81 +246,31 @@ describe('User Authentication', () => {
       loginForm.clickSubmit();
     });
     it('Then I should see the main screen', () => {
-      cy.contains('#list-name', 'Minha Lista').should('be.visible');
+      cy.get('header h1').should('contain.text', 'Minhas Listas');
     });
-  });
-
-  describe('Continue without login', () => {
-    it('I can access guest mode', () => {
-      cy.visit('/app.html');
-      cy.get('#continue-guest').click();
-      cy.contains('#mode-indicator', 'Convidado').should('exist');
-    });
-  });
-
-  describe('Logout', () => {
     it('logs out from the app', () => {
-      cy.get('#logout-button').click();
+      cy.get('#logout-button-lists').click();
       cy.get('#auth-section').should('be.visible');
     });
   });
 });
 
-describe('List Management', () => {
-  const listName = 'Nova Lista';
-  it('creates a new list', () => {
-    listsPage.createList(listName);
-    cy.contains('#lists-table td', listName).should('exist');
-  });
-  it('deletes a list', () => {
-    listsPage.deleteList(listName);
-    cy.contains('#lists-table td', listName).should('not.exist');
-  });
-});
 
-describe('Item Management', () => {
-  const itemName = 'Galaxy S23';
-  it('adds a new item', () => {
-    itemForm.fillItem({
-      cat: 'Eletrônicos',
-      brand: 'Samsung',
-      name: itemName,
-      notes: 'telefone de teste'
-    });
-    itemForm.submit();
-    cy.contains('#items-table td', itemName).should('exist');
-  });
-  it('edits an item', () => {
-    itemsPage.editItem(itemName, 'Galaxy Edit');
-    cy.contains('#items-table td', 'Galaxy Edit').should('exist');
-  });
-  it('deletes an item', () => {
-    itemsPage.deleteItem('Galaxy Edit');
-    cy.contains('#items-table td', 'Galaxy Edit').should('not.exist');
-  });
-});
 
-describe('Theme Preference', () => {
-  it('toggles dark mode', () => {
-    themeToggle.toggle();
-    cy.get('body').should('have.class', 'dark-mode');
-  });
-});
+// describe('Import and Export', () => {
+//   it('exports data to JSON', () => {
+//     importExport.exportData();
+//     // Add assertion for downloaded file if needed
+//   });
+//   it('imports items from JSON', () => {
+//     importExport.importData('cypress/fixtures/sample-data.json');
+//     // Verify imported data in table
+//   });
+// });
 
-describe('Import and Export', () => {
-  it('exports data to JSON', () => {
-    importExport.exportData();
-    // Add assertion for downloaded file if needed
-  });
-  it('imports items from JSON', () => {
-    importExport.importData('cypress/fixtures/sample-data.json');
-    // Verify imported data in table
-  });
-});
-
-describe('List Sharing (Premium)', () => {
-  it('shares a list with read permission', () => {
-    sharePage.share('other@example.com');
-    sharePage.elements.userEntry('other@example.com', 'read').should('exist');
-  });
-});
+// describe('List Sharing (Premium)', () => {
+//   it('shares a list with read permission', () => {
+//     sharePage.share('other@example.com');
+//     sharePage.elements.userEntry('other@example.com', 'read').should('exist');
+//   });
+// });

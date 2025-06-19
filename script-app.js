@@ -811,7 +811,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 activeDataManager.updateItem(itemId, updatedData, items);
                 renderAppUI();
             }
-            showInfoModal('Alterações salvas com sucesso!', true);
+            showToast('Alterações salvas com sucesso!', true);
             // renderItems(); // Não é estritamente necessário se renderAppUI é chamado ou onSnapshot está ativo
         } catch (error) {
             console.error("Erro ao atualizar item:", error);
