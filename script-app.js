@@ -634,7 +634,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     function handleLogout() {
-        auth.signOut().catch(error => console.error("Erro no logout:", error.message));
+        const isGuest = !currentUser && modoOperacao === 'localStorage';
+        if (isGuest) {
+            window.location.href = '/app.html';
+        } else {
+            auth.signOut().catch(error => console.error("Erro no logout:", error.message));
+        }
     }
 
     if (logoutButton) {

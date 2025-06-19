@@ -166,9 +166,9 @@ describe('Not Authenticated User', () => {
 
   describe('List Management', () => {
     const listName = 'Nova Lista';
-    cy.visit('/app.html');
-    cy.get('#continue-guest').click();
     it('creates a new list', () => {
+      cy.visit('/app.html');
+      cy.get('#continue-guest').click();
       listsPage.createList(listName);
       cy.contains('#lists-table td', listName).should('exist');
      });
@@ -254,7 +254,7 @@ describe('User Authentication', () => {
 
   describe('Logout', () => {
     it('logs out from the app', () => {
-      cy.get('#logout-button').click();
+      cy.get('#logout-button-lists').click();
       cy.get('#auth-section').should('be.visible');
     });
   });
