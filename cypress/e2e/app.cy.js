@@ -145,6 +145,7 @@ describe('Access Main Site', () => {
 });
 
 describe('Not Authenticated User', () => {
+  const listName = 'Nova Lista';
   describe('Access without login', () => {
     it('I can access guest mode', () => {
       cy.visit('/app.html');
@@ -163,7 +164,6 @@ describe('Not Authenticated User', () => {
     });
   });
   describe('List Management', () => {
-    const listName = 'Nova Lista';
     it('Access without login', () => {
       cy.visit('/app.html');
       cy.get('#continue-guest').click();
