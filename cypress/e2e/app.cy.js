@@ -144,6 +144,71 @@ describe('Access Main Site', () => {
   });
 });
 
+describe('Not Authenticated User', () => {
+  describe('Access without login', () => {
+    it('I can access guest mode', () => {
+      cy.visit('/app.html');
+      cy.get('#continue-guest').click();
+      cy.contains('#mode-indicator', 'Convidado').should('exist');
+    });
+  });
+
+  describe('Logout', () => {
+    it('logs out from the app', () => {
+      cy.get('#logout-button').click();
+      cy.get('#auth-section').should('be.visible');
+      cy.clearLocalStorage();
+      cy.window().then((win) => {
+        win.sessionStorage.clear();
+      });
+    });
+  });
+
+  describe('List Management', () => {
+    const listName = 'Nova Lista';
+    cy.visit('/app.html');
+    cy.get('#continue-guest').click();
+    it('creates a new list', () => {
+      listsPage.createList(listName);
+      cy.contains('#lists-table td', listName).should('exist');
+     });
+
+    it('deletes a list', () => {
+      listsPage.deleteList(listName);
+      cy.contains('#lists-table td', listName).should('not.exist');
+    });
+  });
+
+  describe('Item Management', () => {
+    const itemName = 'Galaxy S23';
+    it('adds a new item', () => {
+      itemForm.fillItem({
+        cat: 'Eletrônicos',
+        brand: 'Samsung',
+        name: itemName,
+        notes: 'telefone de teste'
+      });
+      itemForm.submit();
+      cy.contains('#items-table td', itemName).should('exist');
+    });
+    it('edits an item', () => {
+      itemsPage.editItem(itemName, 'Galaxy Edit');
+      cy.contains('#items-table td', 'Galaxy Edit').should('exist');
+    });
+    it('deletes an item', () => {
+      itemsPage.deleteItem('Galaxy Edit');
+      cy.contains('#items-table td', 'Galaxy Edit').should('not.exist');
+    });
+  });
+
+  describe('Theme Preference', () => {
+    it('toggles dark mode', () => {
+      themeToggle.toggle();
+      cy.get('body').should('have.class', 'dark-mode');
+    });
+  });
+});
+
 describe('User Authentication', () => {
   describe('Registering a new user', () => {
     const input = { user: 'registered@test.com', password: 'Password123' };
