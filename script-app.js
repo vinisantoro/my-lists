@@ -1136,7 +1136,7 @@ function updateAutocompleteLists() {
                 actionsCell.appendChild(shareBtn);
             }
 
-            if (currentUser && list.ownerId === currentUser.uid) {
+            if (modoOperacao !== 'firebase' || (currentUser && list.ownerId === currentUser.uid)) {
                 const delBtn = document.createElement('button');
                 delBtn.className = 'delete-btn';
                 delBtn.innerHTML = '<i class="fas fa-trash"></i>';
