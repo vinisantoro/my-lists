@@ -152,10 +152,9 @@ describe('Not Authenticated User', () => {
       cy.contains('#mode-indicator', 'Convidado').should('exist');
     });
   });
-
   describe('Logout', () => {
     it('logs out from the app', () => {
-      cy.get('#logout-button').click();
+      cy.get('#logout-button-lists').click();
       cy.get('#auth-section').should('be.visible');
       cy.clearLocalStorage();
       cy.window().then((win) => {
@@ -163,24 +162,23 @@ describe('Not Authenticated User', () => {
       });
     });
   });
-
   describe('List Management', () => {
     const listName = 'Nova Lista';
-    it('creates a new list', () => {
+    it('Access without login', () => {
       cy.visit('/app.html');
       cy.get('#continue-guest').click();
+      cy.contains('#mode-indicator', 'Convidado').should('exist');
+    });
+    it('creates a new list', () => {
       listsPage.createList(listName);
       cy.contains('#lists-table td', listName).should('exist');
      });
-
-    it('deletes a list', () => {
-      listsPage.deleteList(listName);
-      cy.contains('#lists-table td', listName).should('not.exist');
-    });
   });
-
   describe('Item Management', () => {
     const itemName = 'Galaxy S23';
+    it('access created list', () => {
+      cy.contains('#lists-table tr', listName).find('.edit-btn').click();      
+    });
     it('adds a new item', () => {
       itemForm.fillItem({
         cat: 'Eletrônicos',
@@ -199,8 +197,12 @@ describe('Not Authenticated User', () => {
       itemsPage.deleteItem('Galaxy Edit');
       cy.contains('#items-table td', 'Galaxy Edit').should('not.exist');
     });
-  });
-
+    it('deletes a list', () => {
+      cy.contains('#back-to-lists').click();
+      listsPage.deleteList(listName);
+      cy.contains('#lists-table td', listName).should('not.exist');
+    });
+  });  
   describe('Theme Preference', () => {
     it('toggles dark mode', () => {
       themeToggle.toggle();
@@ -254,7 +256,7 @@ describe('User Authentication', () => {
 
   describe('Logout', () => {
     it('logs out from the app', () => {
-      cy.get('#logout-button-lists').click();
+      cy.get('#logout-button').click();
       cy.get('#auth-section').should('be.visible');
     });
   });
