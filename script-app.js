@@ -465,7 +465,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const isLoggedInButFree = currentUser && !userProfile.isPremium; // modoOperacao será 'localStorage' neste caso
 
         if(userEmailDisplay) userEmailDisplay.textContent = currentUser ? currentUser.email : (isGuest ? 'Convidado' : '');
-        if(logoutButton) logoutButton.style.display = currentUser ? 'inline-block' : 'none';
+        if(logoutButton) logoutButton.style.display = (currentUser || isGuest) ? 'inline-block' : 'none';
         if(logoutButtonLists) logoutButtonLists.style.display = (currentUser || isGuest) ? 'inline-block' : 'none';
         if(guestModeOption) guestModeOption.style.display = currentUser ? 'none' : 'block'; // Mostra se não há usuário logado
         
@@ -811,7 +811,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 activeDataManager.updateItem(itemId, updatedData, items);
                 renderAppUI();
             }
-            showToast('Alterações salvas com sucesso!', true);
+            showToast('Alterações salvas com sucesso!');
             // renderItems(); // Não é estritamente necessário se renderAppUI é chamado ou onSnapshot está ativo
         } catch (error) {
             console.error("Erro ao atualizar item:", error);
@@ -870,6 +870,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const remainingCategories = [...new Set(items.map(it => it.category))];
         if (!remainingCategories.includes(category)) activeCategory = 'all';
+        showToast('Categoria excluída com sucesso!', true);
     }
 
     async function shareListWithEmail(email, permission) {
