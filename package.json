@@ -7,7 +7,7 @@
   "scripts": {
     "start": "npx live-server",
     "test": "npx cypress run --browser electron",
-    "cypress:web": "npx cypress open" 
+    "web": "npx cypress open" 
   },
   "keywords": [],
   "author": "Vinicius Correa <vini.santoro@gmail.com>",
