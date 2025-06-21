@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Elementos da UI do Aplicativo (quando logado ou como convidado)
     const userEmailDisplay = document.getElementById('user-email-display');
     const logoutButton = document.getElementById('logout-button');
-    const upgradeToPremiumButton = document.getElementById('upgrade-to-premium');
+    const upgradeButtons = document.querySelectorAll('.upgrade-to-premium');
     const modeIndicator = document.getElementById('mode-indicator');
     
     // Formulário de Itens
@@ -75,6 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Seções e Tabelas
     const listsSection = document.getElementById('lists-section');
     const itemsSection = document.getElementById('items-section');
+    const listsTable = document.getElementById('lists-table');
     const listsTableBody = document.querySelector('#lists-table tbody');
     const createListButton = document.getElementById('create-list');
     const createListModal = document.getElementById('create-list-modal');
@@ -469,12 +470,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if(logoutButtonLists) logoutButtonLists.style.display = (currentUser || isGuest) ? 'inline-block' : 'none';
         if(guestModeOption) guestModeOption.style.display = currentUser ? 'none' : 'block'; // Mostra se não há usuário logado
         
-        if(upgradeToPremiumButton) {
+        if(upgradeButtons && upgradeButtons.length) {
             const showUpgradeButton = isGuest || isLoggedInButFree;
-            upgradeToPremiumButton.style.display = showUpgradeButton ? 'inline-block' : 'none';
-            if(showUpgradeButton) {
-                upgradeToPremiumButton.onclick = () => { window.location.href = 'planos.html'; };
-            }
+            upgradeButtons.forEach(btn => {
+                btn.style.display = showUpgradeButton ? 'inline-block' : 'none';
+                if(showUpgradeButton) {
+                    btn.onclick = () => { window.location.href = 'planos.html'; };
+                }
+            });
+        }
+
+        if(listsTable) {
+            listsTable.classList.toggle('hide-guest', isGuest);
         }
 
         if(createListButton) createListButton.style.display = 'inline-block';
@@ -649,8 +656,10 @@ document.addEventListener('DOMContentLoaded', () => {
         logoutButtonLists.addEventListener('click', handleLogout);
     }
     // Listener para o botão de Upgrade (apenas redireciona)
-    if (upgradeToPremiumButton) {
-        upgradeToPremiumButton.onclick = () => { window.location.href = 'planos.html'; };
+    if (upgradeButtons && upgradeButtons.length) {
+        upgradeButtons.forEach(btn => {
+            btn.onclick = () => { window.location.href = 'planos.html'; };
+        });
     }
 
     // ---------------------------------------------------------------------------

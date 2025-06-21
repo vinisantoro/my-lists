@@ -890,6 +890,7 @@ body.dark-mode #app-content .container {
     transition: background-color 0.2s, color 0.2s, border-color 0.2s;
     display: inline-flex;
     align-items: center;
+    white-space: nowrap;
     gap: 6px;
     border: 1px solid var(--primary-color);
     background-color: transparent;
@@ -1626,6 +1627,14 @@ body.dark-mode #lists-table tbody tr:nth-child(even) {
 
 #lists-table td button:hover {
     opacity: 0.85;
+}
+
+/* Oculta colunas Dono e Compartilhado com quando em modo convidado */
+#lists-table.hide-guest th:nth-child(4),
+#lists-table.hide-guest th:nth-child(5),
+#lists-table.hide-guest td:nth-child(4),
+#lists-table.hide-guest td:nth-child(5) {
+    display: none;
 }
 
 .edit-btn {

@@ -135,6 +135,9 @@
                   accept=".json"
                   style="display: none"
                 />
+                <button id="upgrade-to-premium-lists" class="btn btn-premium-cta upgrade-to-premium" style="display: none">
+                  <i class="fas fa-star"></i> Fazer Upgrade para Premium
+                </button>
                 <button id="logout-button-lists" style="display: none">
                   <i class="fas fa-sign-out-alt"></i>Sair
                 </button>
@@ -147,8 +150,8 @@
                     <th>Nome</th>
                     <th>Criada em</th>
                     <th>Atualizada em</th>
-                    <th>Dono</th>
-                    <th>Compartilhado com</th>
+                    <th class="owner-column">Dono</th>
+                    <th class="shared-column">Compartilhado com</th>
                     <th>Ações</th>
                   </tr>
                 </thead>
@@ -193,8 +196,8 @@
                 </button>
               <button
                 id="upgrade-to-premium"
+                class="btn btn-premium-cta upgrade-to-premium"
                 style="display: none"
-                class="btn btn-premium-cta"
               >
                 <i class="fas fa-star"></i> Fazer Upgrade para Premium
               </button>
