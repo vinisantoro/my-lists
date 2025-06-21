@@ -897,6 +897,12 @@ body.dark-mode #app-content .container {
     color: var(--primary-color);
 }
 
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
 .controls button:hover,
 .controls .button-import-label:hover {
     background-color: var(--primary-color);
