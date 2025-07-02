@@ -707,22 +707,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadAndRenderData() {
         unsubscribeItemsListener(); // Limpa listener de itens anterior sempre
+        unsubscribeItemsListener = () => {}; // Garante que sempre temos uma função válida
 
         if (modoOperacao === 'firebase' && currentUser) {
-            // Configura o listener em tempo real para itens do Firebase
-            // Deve filtrar pelo dono da lista e pelo ID da lista atual
-            unsubscribeItemsListener = db.collection('items')
-                .where('userId', '==', activeListOwnerId)
-                .where('listId', '==', activeListId)
-                .orderBy('createdAt', 'desc')
-                .onSnapshot(snapshot => {
-                    items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    renderAppUI(); // Re-renderiza a UI com os novos dados
-                }, error => {
-                    console.error("Erro no listener de itens do Firebase:", error);
-                    items = []; // Limpa itens em caso de erro
-                    renderAppUI();
-                });
+            // Garante que os IDs necessários estejam presentes antes de criar o listener
+            if (!activeListOwnerId || !activeListId) {
+                items = [];
+                renderAppUI();
+                return;
+            }
+
+            try {
+                // Configura o listener em tempo real para itens do Firebase
+                // Deve filtrar pelo dono da lista e pelo ID da lista atual
+                unsubscribeItemsListener = db.collection('items')
+                    .where('userId', '==', activeListOwnerId)
+                    .where('listId', '==', activeListId)
+                    .orderBy('createdAt', 'desc')
+                    .onSnapshot(snapshot => {
+                        items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        renderAppUI(); // Re-renderiza a UI com os novos dados
+                    }, error => {
+                        console.error("Erro no listener de itens do Firebase:", error);
+                        items = []; // Limpa itens em caso de erro
+                        renderAppUI();
+                    });
+            } catch (err) {
+                console.error("Erro ao configurar listener de itens:", err);
+                items = [];
+                renderAppUI();
+            }
         } else { // Modo LocalStorage (ou deslogado, mas o app não deveria estar visível)
             items = activeDataManager.loadItems().filter(it => it.listId === activeListId);
             renderAppUI();
