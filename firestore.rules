@@ -2,7 +2,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // Helpers -------------------------------------------------------
-    function listData(listId) {
+    function getList(listId) {
       return get(/databases/$(database)/documents/lists/$(listId)).data;
     }
 
@@ -18,8 +18,7 @@ service cloud.firestore {
       return signedIn() && list.writerEmails != null && request.auth.token.email in list.writerEmails;
     }
 
-    function canWrite(listId) {
-      let list = listData(listId);
+    function canWrite(list) {
       return isOwner(list) || isWriter(list);
     }
 
@@ -29,11 +28,11 @@ service cloud.firestore {
 
     // Items ---------------------------------------------------------
     match /items/{itemId} {
-      allow read: if signedIn() && canRead(listData(resource.data.listId));
-      allow write: if signedIn() && canWrite(resource.data.listId);
+      allow read: if signedIn() && canRead(getList(resource.data.listId));
+      allow write: if signedIn() && canWrite(getList(resource.data.listId));
       allow create: if signedIn()
-        && request.resource.data.userId == listData(request.resource.data.listId).ownerId
-        && canWrite(request.resource.data.listId)
+        && request.resource.data.userId == getList(request.resource.data.listId).ownerId
+        && canWrite(getList(request.resource.data.listId))
         && request.resource.data.name is string
         && request.resource.data.brand is string
         && request.resource.data.category is string
@@ -69,7 +68,7 @@ service cloud.firestore {
 
     // List documents -----------------------------------------------
     match /lists/{listId} {
-      allow read: if signedIn() && canRead(listData(listId));
+      allow read: if signedIn() && canRead(resource.data);
       allow write: if signedIn() && request.auth.uid == resource.data.ownerId;
       allow create: if signedIn() && request.auth.uid == request.resource.data.ownerId
         && request.resource.data.name is string
