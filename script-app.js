@@ -322,7 +322,10 @@ document.addEventListener('DOMContentLoaded', () => {
             itemsSnap.forEach(doc => batch.delete(doc.ref));
             await batch.commit();
 
-            const sharesSnap = await db.collection('sharedLists').where('listId', '==', listId).get();
+            const sharesSnap = await db.collection('sharedLists')
+                .where('listId', '==', listId)
+                .where('ownerId', '==', currentUser.uid)
+                .get();
             const batch2 = db.batch();
             sharesSnap.forEach(doc => batch2.delete(doc.ref));
             await batch2.commit();
