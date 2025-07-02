@@ -1,7 +1,7 @@
-// ===================================================================================
+// =============================================================================
 // SCRIPT PRINCIPAL DA APLICAÇÃO (script-app.js)
 // Gerenciamento de Lista de Itens com Modelo Freemium (LocalStorage e Firebase)
-// ===================================================================================
+// =============================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
     // ---------------------------------------------------------------------------
@@ -249,7 +249,16 @@ document.addEventListener('DOMContentLoaded', () => {
                                      .where('ownerId', '==', user.uid)
                                      .orderBy('createdAt', 'desc')
                                      .get();
-                ownSnap.forEach(doc => lists.push({ id: doc.id, ...doc.data(), permission: 'owner', canWrite: true }));
+                ownSnap.forEach(doc => {
+                    const data = doc.data();
+                    lists.push({
+                        id: doc.id,
+                        ...data,
+                        ownerEmail: data.ownerEmail || user.email,
+                        permission: 'owner',
+                        canWrite: true
+                    });
+                });
 
                 const sharedSnap = await db.collection('sharedLists')
                     .where('invitedEmail', '==', user.email)
@@ -273,6 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         lists.push({
                             id: listDoc.id,
                             ...listData,
+                            ownerEmail: listData.ownerEmail || '',
                             permission: data.permission,
                             canWrite: userProfile.isPremium && data.permission === 'write'
                         });
@@ -288,16 +298,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 return [];
             }
         },
-        addList: async (userId, name) => {
+        addList: async (userId, name, ownerEmail) => {
             const data = {
                 ownerId: userId,
+                ownerEmail,
                 name,
                 writerEmails: [],
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
             const docRef = await db.collection('lists').add(data);
-            return { id: docRef.id, ownerId: userId, name, createdAt: new Date(), updatedAt: new Date() };
+            return { id: docRef.id, ownerId: userId, ownerEmail, name, createdAt: new Date(), updatedAt: new Date() };
         },
         updateList: async (listId, data) => {
             await db.collection('lists').doc(listId).update({
@@ -306,15 +317,17 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         },
         deleteList: async (listId) => {
-            await db.collection('lists').doc(listId).delete();
             const itemsSnap = await db.collection('items').where('listId', '==', listId).get();
             const batch = db.batch();
             itemsSnap.forEach(doc => batch.delete(doc.ref));
             await batch.commit();
+
             const sharesSnap = await db.collection('sharedLists').where('listId', '==', listId).get();
             const batch2 = db.batch();
             sharesSnap.forEach(doc => batch2.delete(doc.ref));
             await batch2.commit();
+
+            await db.collection('lists').doc(listId).delete();
         }
     };
 
@@ -1207,8 +1220,6 @@ function updateAutocompleteLists() {
                 console.error('Erro ao excluir lista:', error);
                 showInfoModal('Erro ao excluir lista.');
             }
-            renderLists();
-            showToast('Lista excluída com sucesso!', true);
         });
     }
 
@@ -1451,7 +1462,7 @@ function updateAutocompleteLists() {
             const name = newListNameInput.value.trim();
             if (!name) return;
             if (modoOperacao === 'firebase' && currentUser) {
-                const newList = await fbListManager.addList(currentUser.uid, name);
+                const newList = await fbListManager.addList(currentUser.uid, name, currentUser.email);
                 lists.unshift(newList);
             } else {
                 const newList = { id: generateId(), name, createdAt: new Date(), updatedAt: new Date(), ownerId: null };
