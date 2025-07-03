@@ -8,13 +8,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // CONFIGURAÇÃO E INICIALIZAÇÃO DO FIREBASE
     // ---------------------------------------------------------------------------
     const firebaseConfig = {
-        apiKey: "AIzaSyBeAVHfvUU993JQHJLMc9BHsV2KUZOs33U", // Chave de API do seu projeto Firebase
-        authDomain: "my-list-2f3a7.firebaseapp.com",     // Domínio de autenticação
-        projectId: "my-list-2f3a7",                     // ID do projeto
-        storageBucket: "my-list-2f3a7.appspot.com",     // Bucket de armazenamento (se usado)
-        messagingSenderId: "515380103480",              // ID do remetente de mensagens (se usado)
-        appId: "1:515380103480:web:0d6c2e7d4ee47cc9d299cd", // ID do aplicativo web
-        measurementId: "G-V0K1T22ZNB"                   // ID de medição do Google Analytics (se usado)
+        apiKey: "AIzaSyBeAVHfvUU993JQHJLMc9BHsV2KUZOs33U",
+        authDomain: "my-list-2f3a7.firebaseapp.com",
+        projectId: "my-list-2f3a7",
+        storageBucket: "my-list-2f3a7.firebasestorage.app", 
+        messagingSenderId: "515380103480",
+        appId: "1:515380103480:web:0d6c2e7d4ee47cc9d299cd",
+        measurementId: "G-V0K1T22ZNB"
     };
 
     try {
