@@ -530,6 +530,7 @@ document.addEventListener('DOMContentLoaded', () => {
     auth.onAuthStateChanged(async user => {
         unsubscribePrefsListener(); // Cancela listener de preferências anterior
         unsubscribeItemsListener(); // Cancela listener de itens anterior
+        unsubscribeItemsListener = () => {};
 
         if (user) { // Usuário está logado
             currentUser = user;
@@ -1229,7 +1230,19 @@ function updateAutocompleteLists() {
                 if (modoOperacao !== 'firebase') lsListManager.saveLists(lists);
 
                 if (activeListId === id) {
-                    activeListId = lists.length ? lists[0].id : null;
+                    unsubscribeItemsListener();
+                    unsubscribeItemsListener = () => {};
+                    if (lists.length) {
+                        const nextList = lists[0];
+                        activeListId = nextList.id;
+                        activeListOwnerId = nextList.ownerId || (currentUser ? currentUser.uid : null);
+                        activeListCanWrite = nextList.canWrite !== undefined ? nextList.canWrite : true;
+                    } else {
+                        activeListId = null;
+                        activeListOwnerId = null;
+                        activeListCanWrite = true;
+                    }
+                    await loadAndRenderData();
                 }
                 renderLists();
                 showToast('Lista excluída com sucesso!', true);
