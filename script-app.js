@@ -530,6 +530,7 @@ document.addEventListener('DOMContentLoaded', () => {
     auth.onAuthStateChanged(async user => {
         unsubscribePrefsListener(); // Cancela listener de preferências anterior
         unsubscribeItemsListener(); // Cancela listener de itens anterior
+        unsubscribeItemsListener = () => {};
 
         if (user) { // Usuário está logado
             currentUser = user;
@@ -1230,6 +1231,7 @@ function updateAutocompleteLists() {
 
                 if (activeListId === id) {
                     unsubscribeItemsListener();
+                    unsubscribeItemsListener = () => {};
                     if (lists.length) {
                         const nextList = lists[0];
                         activeListId = nextList.id;
